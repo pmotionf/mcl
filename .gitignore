@@ -1,0 +1,20 @@
+# This sets the `.gitignore` to be a *whitelist* by default.
+**/**
+!*/
+
+
+# Whitelist
+!*.md
+!LICENSE
+!.gitignore
+!assets/**
+!build.zig
+!build.zig.zon
+!lib/**
+
+!*.zig
+!*.h
+
+# Blacklist (overrides Whitelist)
+**/zig-out/**
+**/zig-cache/**
