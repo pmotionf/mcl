@@ -129,9 +129,8 @@ pub fn axisSlider(axis: AxisId) ?SliderId {
 }
 
 pub fn axisRecoverSlider(axis: AxisId, new_slider_id: SliderId) !void {
-    if (connection.axis(axis).detectedBackHallSensor() and
-        connection.axis(axis).detectedFrontHallSensor() and
-        connection.axis(axis).slider() == null)
+    if (connection.axis(axis).detectedBackHallSensor() or
+        connection.axis(axis).detectedFrontHallSensor())
     {
         try waitCommandReady(connection.axis(axis).driver);
         try connection.axis(axis).command.recoverSlider(new_slider_id);
