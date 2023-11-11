@@ -248,7 +248,7 @@ pub fn sliderPosMoveAxis(
                 // different drivers.
                 if (next_axis_ind < connection.axes.len and
                     connection.axes[next_axis_ind].driver != axis.driver and
-                    connection.axes[next_axis_ind].slider() != null)
+                    connection.axes[next_axis_ind].slider() == sid)
                 {
                     var next_axis: *Connection.Axis =
                         connection.axes[next_axis_ind];
@@ -323,7 +323,7 @@ pub fn sliderPosMoveLocation(
                 // different drivers.
                 if (next_axis_ind < connection.axes.len and
                     connection.axes[next_axis_ind].driver != axis.driver and
-                    connection.axes[next_axis_ind].slider() != null)
+                    connection.axes[next_axis_ind].slider() == sid)
                 {
                     var next_axis: *Connection.Axis =
                         connection.axes[next_axis_ind];
@@ -406,7 +406,7 @@ pub fn sliderPosMoveDistance(
                 // different drivers.
                 if (next_axis_ind < connection.axes.len and
                     connection.axes[next_axis_ind].driver != axis.driver and
-                    connection.axes[next_axis_ind].slider() != null)
+                    connection.axes[next_axis_ind].slider() == sid)
                 {
                     var next_axis: *Connection.Axis =
                         connection.axes[next_axis_ind];
