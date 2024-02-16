@@ -17,7 +17,7 @@ parent: *Connection,
 path: Long = undefined,
 
 pub fn init(parent: *Connection) !Self {
-    var result: Self = .{
+    const result: Self = .{
         .parent = parent,
     };
     return result;
@@ -186,7 +186,7 @@ pub fn axisReleaseServo(
     var devno: Long = @intCast(Registers.Y.bit_size);
     devno *= driver_id - 1;
     if (set) {
-        var new_ww: Registers.Ww = .{
+        const new_ww: Registers.Ww = .{
             .target_axis_number = @intFromEnum(axis_id_driver),
         };
         try self.sendWw(driver_id, new_ww);
