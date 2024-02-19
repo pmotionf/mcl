@@ -3,7 +3,7 @@
     .version = "0.0.8",
     .dependencies = .{
         .mdfunc = .{
-            .url = "git+https://github.com/pmotionf/mdfunc.zig#87f9aac4628246fad15e0a6f5344d0ff4ce7c20e",
+            .url = "https://github.com/pmotionf/mdfunc.zig/archive/87f9aac4628246fad15e0a6f5344d0ff4ce7c20e.tar.gz",
             .hash = "12208c85c8b46f4d650876440ea93812f8113bf1c85c0dba8682ba0459a9a8705665",
         },
     },
