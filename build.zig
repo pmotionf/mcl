@@ -15,9 +15,9 @@ pub fn build(b: *std.Build) !void {
 
     const mdfunc_path: []const u8 =
         if (target.result.cpu.arch == .x86_64)
-        b.pathFromRoot("lib/Mdfunc/lib/x64/MdFunc32.lib")
+        b.pathFromRoot("vendor/mdfunc/lib/x64/MdFunc32.lib")
     else
-        b.pathFromRoot("lib/Mdfunc/lib/mdfunc32.lib");
+        b.pathFromRoot("vendor/mdfunc/lib/mdfunc32.lib");
 
     const mdfunc = b.dependency("mdfunc", .{
         .target = target,

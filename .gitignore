@@ -10,7 +10,7 @@
 !assets/**
 !build.zig
 !build.zig.zon
-!lib/**
+!vendor/**
 
 !*.zig
 !*.h
