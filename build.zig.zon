@@ -1,5 +1,5 @@
 .{
-    .name = "MCS",
+    .name = "MCL",
     .version = "0.0.8",
     .dependencies = .{
         .mdfunc = .{
@@ -8,7 +8,6 @@
         },
     },
     .paths = .{
-        "lib",
         "src",
         "include",
         "build.zig",

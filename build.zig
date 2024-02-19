@@ -1,7 +1,7 @@
 const std = @import("std");
 
-const mcs_version_string = @import("version.zig").mcs_version;
-pub const mcs_version = std.SemanticVersion.parse(mcs_version_string) catch {
+const mcl_version_string = @import("version.zig").mcl_version;
+pub const mcl_version = std.SemanticVersion.parse(mcl_version_string) catch {
     unreachable;
 };
 
@@ -28,8 +28,8 @@ pub fn build(b: *std.Build) !void {
         .mdfunc = mdfunc_lib_path,
     });
 
-    const mod = b.addModule("mcs", .{
-        .root_source_file = .{ .path = "src/mcs.zig" },
+    const mod = b.addModule("mcl", .{
+        .root_source_file = .{ .path = "src/mcl.zig" },
         .imports = &.{
             .{ .name = "version", .module = version },
             .{ .name = "mdfunc", .module = mdfunc.module("mdfunc") },
@@ -37,27 +37,27 @@ pub fn build(b: *std.Build) !void {
     });
 
     const lib = b.addSharedLibrary(.{
-        .name = "MCS",
-        .root_source_file = .{ .path = "src/mcs_c.zig" },
+        .name = "MCL",
+        .root_source_file = .{ .path = "src/mcl_c.zig" },
         .target = target,
         .optimize = optimize,
-        .version = mcs_version,
+        .version = mcl_version,
     });
     lib.root_module.addImport("version", version);
-    lib.root_module.addImport("mcs", mod);
+    lib.root_module.addImport("mcl", mod);
 
     const lib_compile_step = b.step(
-        "MCS",
-        "Compile MCS Library",
+        "MCL",
+        "Compile Motion Control Library",
     );
     lib_compile_step.dependOn(&b.addInstallArtifact(lib, .{}).step);
     lib_compile_step.dependOn(
-        &b.addInstallHeaderFile("include/MCS.h", "MCS.h").step,
+        &b.addInstallHeaderFile("include/MCL.h", "MCL.h").step,
     );
     b.getInstallStep().dependOn(lib_compile_step);
 
     const main_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/mcs.zig" },
+        .root_source_file = .{ .path = "src/mcl.zig" },
         .target = target,
         .optimize = optimize,
     });

@@ -37,7 +37,7 @@ var system_config: Config = .{
 
 pub fn version() std.SemanticVersion {
     // TODO: Integrate with `build.zig.zon` version.
-    return std.SemanticVersion.parse(_version.mcs_version) catch {
+    return std.SemanticVersion.parse(_version.mcl_version) catch {
         unreachable;
     };
 }
@@ -88,7 +88,7 @@ pub fn init(config: Config) !void {
     allocator.free(connection_config_drivers);
     arena.deinit();
 
-    // Initialization of MCS.
+    // Initialization of MCL.
     arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     errdefer arena.deinit();
     allocator = arena.allocator();

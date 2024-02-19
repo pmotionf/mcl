@@ -1,3 +1,3 @@
-# MCS
+# MCL
 
-> Motion Control Software
+> PMF's Motion Control Library
