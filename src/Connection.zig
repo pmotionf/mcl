@@ -199,7 +199,7 @@ pub const Axis = struct {
     };
     pub const IdSystem = i16;
 
-    pub const Status = Registers.Wr.FsmCode;
+    pub const Status = Registers.Wr.SliderStateCode;
 
     pub const Command = struct {
         pub fn recoverSlider(c: *Command, new_slider_id: SliderId) !void {
@@ -227,15 +227,15 @@ pub const Axis = struct {
         switch (a.id_driver) {
             .first => {
                 return a.driver.self._registers.x[a.driver.index]
-                    .axis1_backward_hall_sensor_detected;
+                    .hall_sensor.axis1.back;
             },
             .second => {
                 return a.driver.self._registers.x[a.driver.index]
-                    .axis2_backward_hall_sensor_detected;
+                    .hall_sensor.axis2.back;
             },
             .third => {
                 return a.driver.self._registers.x[a.driver.index]
-                    .axis3_backward_hall_sensor_detected;
+                    .hall_sensor.axis3.back;
             },
         }
     }
@@ -244,29 +244,29 @@ pub const Axis = struct {
         switch (a.id_driver) {
             .first => {
                 return a.driver.self._registers.x[a.driver.index]
-                    .axis1_forward_hall_sensor_detected;
+                    .hall_sensor.axis1.front;
             },
             .second => {
                 return a.driver.self._registers.x[a.driver.index]
-                    .axis2_forward_hall_sensor_detected;
+                    .hall_sensor.axis2.front;
             },
             .third => {
                 return a.driver.self._registers.x[a.driver.index]
-                    .axis3_forward_hall_sensor_detected;
+                    .hall_sensor.axis3.front;
             },
         }
     }
 
     pub fn sliderStatus(a: *const Axis) ?Status {
         const wr_register = a.driver.self._registers.wr[a.driver.index];
-        var fsm_value: i16 = 0;
+        var slider_state: i16 = 0;
         switch (a.id_driver) {
-            .first => fsm_value = wr_register.axis1_slider_FSM,
-            .second => fsm_value = wr_register.axis2_slider_FSM,
-            .third => fsm_value = wr_register.axis3_slider_FSM,
+            .first => slider_state = wr_register.slider_state.axis1,
+            .second => slider_state = wr_register.slider_state.axis2,
+            .third => slider_state = wr_register.slider_state.axis3,
         }
 
-        switch (fsm_value) {
+        switch (slider_state) {
             // Slider position-based movement is currently in-progress.
             29 => return .PosMoveProgressing,
             // Slider position-based movement is completed.
@@ -315,21 +315,21 @@ pub const Axis = struct {
             .first => {
                 const slider_num =
                     a.driver.self._registers.wr[a.driver.index]
-                    .axis1_slider_number;
+                    .slider_number.axis1;
                 if (slider_num != 0) return slider_num;
                 return null;
             },
             .second => {
                 const slider_num =
                     a.driver.self._registers.wr[a.driver.index]
-                    .axis2_slider_number;
+                    .slider_number.axis2;
                 if (slider_num != 0) return slider_num;
                 return null;
             },
             .third => {
                 const slider_num =
                     a.driver.self._registers.wr[a.driver.index]
-                    .axis3_slider_number;
+                    .slider_number.axis3;
                 if (slider_num != 0) return slider_num;
                 return null;
             },
@@ -341,16 +341,16 @@ pub const Axis = struct {
         if (a.slider() == null) return null;
         switch (a.id_driver) {
             .first => return .{
-                .mm = wr_register.axis1_slider_location_mm,
-                .um = wr_register.axis1_slider_location_um,
+                .mm = wr_register.slider_location.axis1.mm,
+                .um = wr_register.slider_location.axis1.um,
             },
             .second => return .{
-                .mm = wr_register.axis2_slider_location_mm,
-                .um = wr_register.axis2_slider_location_um,
+                .mm = wr_register.slider_location.axis2.mm,
+                .um = wr_register.slider_location.axis2.um,
             },
             .third => return .{
-                .mm = wr_register.axis3_slider_location_mm,
-                .um = wr_register.axis3_slider_location_um,
+                .mm = wr_register.slider_location.axis3.mm,
+                .um = wr_register.slider_location.axis3.um,
             },
         }
     }
@@ -358,9 +358,9 @@ pub const Axis = struct {
     pub fn isServoActive(a: *const Axis) bool {
         const x_register = a.driver.self._registers.x[a.driver.index];
         switch (a.id_driver) {
-            .first => return x_register.axis1_servo_active,
-            .second => return x_register.axis2_servo_active,
-            .third => return x_register.axis3_servo_active,
+            .first => return x_register.servo_active.axis1,
+            .second => return x_register.servo_active.axis2,
+            .third => return x_register.servo_active.axis3,
         }
     }
 

@@ -36,7 +36,7 @@ pub fn close(self: *Self) !void {
 pub fn poll(self: *Self) !void {
     // Read X Registers
     const x_registers_size: i32 = @intCast(
-        self.parent.drivers.len * Registers.X.byte_size,
+        self.parent.drivers.len * @sizeOf(Registers.X),
     );
     const x_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
@@ -50,7 +50,7 @@ pub fn poll(self: *Self) !void {
 
     // Read Y Registers
     const y_registers_size: i32 = @intCast(
-        self.parent.drivers.len * Registers.Y.byte_size,
+        self.parent.drivers.len * @sizeOf(Registers.Y),
     );
     const y_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
@@ -64,7 +64,7 @@ pub fn poll(self: *Self) !void {
 
     // Read Wr Registers
     const wr_registers_size: i32 = @intCast(
-        self.parent.drivers.len * Registers.Wr.byte_size,
+        self.parent.drivers.len * @sizeOf(Registers.Wr),
     );
     const wr_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
@@ -78,7 +78,7 @@ pub fn poll(self: *Self) !void {
 
     // Read Ww Registers
     const ww_registers_size: i32 = @intCast(
-        self.parent.drivers.len * Registers.Ww.byte_size,
+        self.parent.drivers.len * @sizeOf(Registers.Ww),
     );
     const ww_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
@@ -96,7 +96,7 @@ pub fn driverLink(
     comptime set: bool,
     driver_id: Connection.Driver.Id,
 ) !void {
-    var devno: i32 = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(@bitSizeOf(Registers.Y));
     devno *= @intCast(driver_id - 1);
     if (set) {
         try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno);
@@ -111,7 +111,7 @@ pub fn commandStart(
     driver_id: Connection.Driver.Id,
 ) !void {
     std.debug.assert(driver_id > 0);
-    var devno: i32 = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(@bitSizeOf(Registers.Y));
     devno *= driver_id - 1;
     if (set) {
         try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 2);
@@ -126,7 +126,7 @@ pub fn commandClearReceived(
     driver_id: Connection.Driver.Id,
 ) !void {
     std.debug.assert(driver_id > 0);
-    var devno: i32 = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(@bitSizeOf(Registers.Y));
     devno *= driver_id - 1;
     if (set) {
         try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 3);
@@ -168,7 +168,7 @@ pub fn axisReleaseServo(
     driver_id: Connection.Driver.Id,
     axis_id_driver: Connection.Axis.IdDriver,
 ) !void {
-    var devno: i32 = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(@bitSizeOf(Registers.Y));
     devno *= driver_id - 1;
     if (set) {
         const new_ww: Registers.Ww = .{
@@ -214,8 +214,10 @@ pub fn commandPosMoveLocation(
             Registers.Ww.CommandCode.MoveSliderToLocationByPosition,
         ),
         .command_slider_number = slider_id,
-        .location_distance_mm = target_location.mm,
-        .location_distance_um = target_location.um,
+        .location_distance = .{
+            .mm = target_location.mm,
+            .um = target_location.um,
+        },
         .speed_percentage = speed_percentage,
         .acceleration_percentage = acceleration_percentage,
     };
@@ -234,8 +236,10 @@ pub fn commandPosMoveDistance(
             Registers.Ww.CommandCode.MoveSliderDistanceByPosition,
         ),
         .command_slider_number = slider_id,
-        .location_distance_mm = distance.mm,
-        .location_distance_um = distance.um,
+        .location_distance = .{
+            .mm = distance.mm,
+            .um = distance.um,
+        },
         .speed_percentage = speed_percentage,
         .acceleration_percentage = acceleration_percentage,
     };
@@ -247,7 +251,7 @@ pub fn driverStopAuxTrafficFromNext(
     comptime set: bool,
     driver_id: Connection.Driver.Id,
 ) !void {
-    var devno: i32 = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(@bitSizeOf(Registers.Y));
     devno *= driver_id - 1;
     if (set) {
         try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 10);
@@ -261,7 +265,7 @@ pub fn driverStopAuxTrafficFromPrev(
     comptime set: bool,
     driver_id: Connection.Driver.Id,
 ) !void {
-    var devno: i32 = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(@bitSizeOf(Registers.Y));
     devno *= driver_id - 1;
     if (set) {
         try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 9);
@@ -275,7 +279,7 @@ fn sendWw(
     driver_id: Connection.Driver.Id,
     ww: Registers.Ww,
 ) !void {
-    var devno: i32 = @intCast(Registers.Ww.short_size);
+    var devno: i32 = @intCast(@sizeOf(Registers.Ww) / 2);
     devno *= driver_id - 1;
     const bytes_sent: i32 = try mdfunc.sendEx(
         self.path,
@@ -285,5 +289,5 @@ fn sendWw(
         devno,
         std.mem.asBytes(&ww),
     );
-    std.debug.assert(bytes_sent == Registers.Ww.byte_size);
+    std.debug.assert(bytes_sent == @sizeOf(Registers.Ww));
 }

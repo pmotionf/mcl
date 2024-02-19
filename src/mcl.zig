@@ -180,12 +180,12 @@ fn doCommand(driver: *Connection.Driver) !void {
     // Resetting driver transmission stop bit should be done as soon as the
     // prev/next driver bit indicates that traffic transmission is paused.
     const x_reg = &driver.self._registers.x[driver.index];
-    if (y_reg.stop_prev_to_current_driver_transmission) {
+    if (y_reg.stop_driver_transmission.from_prev) {
         std.log.debug(
             "Waiting for previous driver transmission to be stopped...",
             .{},
         );
-        while (!x_reg.prev_driver_transmission_stopped) {
+        while (!x_reg.transmission_stopped.from_prev) {
             try poll();
         }
         try driver.stopAuxiliaryTrafficFromPrev(false);
@@ -193,16 +193,16 @@ fn doCommand(driver: *Connection.Driver) !void {
             "Waiting for previous driver transmission stop to be cleared...",
             .{},
         );
-        while (y_reg.stop_prev_to_current_driver_transmission) {
+        while (y_reg.stop_driver_transmission.from_prev) {
             try poll();
         }
     }
-    if (y_reg.stop_next_to_current_driver_transmission) {
+    if (y_reg.stop_driver_transmission.from_next) {
         std.log.debug(
             "Waiting for next driver transmission to be stopped...",
             .{},
         );
-        while (!x_reg.next_driver_transmission_stopped) {
+        while (!x_reg.transmission_stopped.from_next) {
             try poll();
         }
         try driver.stopAuxiliaryTrafficFromNext(false);
@@ -210,7 +210,7 @@ fn doCommand(driver: *Connection.Driver) !void {
             "Waiting for next driver transmission stop to be cleared...",
             .{},
         );
-        while (y_reg.stop_next_to_current_driver_transmission) {
+        while (y_reg.stop_driver_transmission.from_next) {
             try poll();
         }
     }
