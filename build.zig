@@ -13,8 +13,11 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = .{ .path = "version.zig" },
     });
 
-    const mdfunc_path: []const u8 =
-        if (target.result.cpu.arch == .x86_64)
+    const mdfunc_lib_path = b.option(
+        []const u8,
+        "mdfunc",
+        "Specify the path to the MELSEC static library artifact.",
+    ) orelse if (target.result.cpu.arch == .x86_64)
         b.pathFromRoot("vendor/mdfunc/lib/x64/MdFunc32.lib")
     else
         b.pathFromRoot("vendor/mdfunc/lib/mdfunc32.lib");
@@ -22,7 +25,7 @@ pub fn build(b: *std.Build) !void {
     const mdfunc = b.dependency("mdfunc", .{
         .target = target,
         .optimize = optimize,
-        .mdfunc = mdfunc_path,
+        .mdfunc = mdfunc_lib_path,
     });
 
     const mod = b.addModule("mcs", .{
