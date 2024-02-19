@@ -1,11 +1,18 @@
 .{
     .name = "MCS",
-    .version = "0.0.7",
+    .version = "0.0.8",
     .dependencies = .{
-        .network = .{
-            .url = "git+https://github.com/MasterQ32/zig-network#cdff53a2527598112a02b442045d4aef39a2e5e2",
-            .hash = "1220509b2da888b2d1ea452ed9d384134a754a940d1dc3865c87da7d224b89912b3d",
+        .mdfunc = .{
+            .url = "git+https://github.com/pmotionf/mdfunc.zig#87f9aac4628246fad15e0a6f5344d0ff4ce7c20e",
+            .hash = "12208c85c8b46f4d650876440ea93812f8113bf1c85c0dba8682ba0459a9a8705665",
         },
     },
-    .paths = .{""},
+    .paths = .{
+        "lib",
+        "src",
+        "include",
+        "build.zig",
+        "build.zig.zon",
+        "version.zig",
+    },
 }

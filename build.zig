@@ -7,21 +7,31 @@ pub const mcs_version = std.SemanticVersion.parse(mcs_version_string) catch {
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
-    const target_arch = target.result.cpu.arch;
-
     const optimize = b.standardOptimizeOption(.{});
 
     const version = b.addModule("version", .{
         .root_source_file = .{ .path = "version.zig" },
     });
 
+    const mdfunc_path: []const u8 =
+        if (target.result.cpu.arch == .x86_64)
+        b.pathFromRoot("lib/Mdfunc/lib/x64/MdFunc32.lib")
+    else
+        b.pathFromRoot("lib/Mdfunc/lib/mdfunc32.lib");
+
+    const mdfunc = b.dependency("mdfunc", .{
+        .target = target,
+        .optimize = optimize,
+        .mdfunc = mdfunc_path,
+    });
+
     const mod = b.addModule("mcs", .{
         .root_source_file = .{ .path = "src/mcs.zig" },
         .imports = &.{
             .{ .name = "version", .module = version },
+            .{ .name = "mdfunc", .module = mdfunc.module("mdfunc") },
         },
     });
-    mod.addIncludePath(.{ .path = "lib/Mdfunc/include" });
 
     const lib = b.addSharedLibrary(.{
         .name = "MCS",
@@ -32,20 +42,6 @@ pub fn build(b: *std.Build) !void {
     });
     lib.root_module.addImport("version", version);
     lib.root_module.addImport("mcs", mod);
-    if (target_arch == .x86_64) {
-        lib.root_module.addLibraryPath(.{ .path = "lib/Mdfunc/lib/x64" });
-        lib.root_module.linkSystemLibrary("MdFunc32", .{
-            .needed = true,
-            .preferred_link_mode = .Static,
-        });
-    } else {
-        lib.root_module.addLibraryPath(.{ .path = "lib/Mdfunc/lib" });
-        lib.root_module.linkSystemLibrary("mdfunc32", .{
-            .needed = true,
-            .preferred_link_mode = .Static,
-        });
-    }
-    lib.linkLibC();
 
     const lib_compile_step = b.step(
         "MCS",

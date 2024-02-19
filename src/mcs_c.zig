@@ -27,13 +27,16 @@ const McsAxisId = c_short;
 const McsDriverId = c_short;
 
 export fn mcsInit(config: *const McsConfig) callconv(.C) c_int {
-    var mcs_drivers: []mcs.DriverConfig = std.heap.c_allocator.alloc(
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    var allocator: std.mem.Allocator = arena.allocator();
+
+    var mcs_drivers: []mcs.DriverConfig = allocator.alloc(
         mcs.DriverConfig,
         config.num_drivers,
     ) catch |e| {
         return @intFromError(e);
     };
-    defer std.heap.c_allocator.free(mcs_drivers);
 
     for (0..config.num_drivers) |i| {
         mcs_drivers[i] = .{ .axis1 = null, .axis2 = null, .axis3 = null };

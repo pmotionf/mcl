@@ -3,18 +3,16 @@
 const Self = @This();
 
 const std = @import("std");
-const mdfunc = @import("mdfunc.zig");
+const mdfunc = @import("mdfunc");
 const common = @import("../common.zig");
 
 const Connection = @import("../Connection.zig");
 const Distance = common.Distance;
-const Long = mdfunc.Long;
 const Registers = @import("Registers.zig");
-const Short = mdfunc.Short;
 
 parent: *Connection,
 
-path: Long = undefined,
+path: i32 = undefined,
 
 pub fn init(parent: *Connection) !Self {
     const result: Self = .{
@@ -28,80 +26,67 @@ pub fn deinit(self: *Self) void {
 }
 
 pub fn open(self: *Self) !void {
-    self.path = try mdfunc.mdOpen(.CcLink_1Slot, -1);
+    self.path = try mdfunc.open(.cc_link_1slot);
 }
 
 pub fn close(self: *Self) !void {
-    try mdfunc.mdClose(self.path);
+    try mdfunc.close(self.path);
 }
 
 pub fn poll(self: *Self) !void {
     // Read X Registers
-    const x_registers_size: Long = @intCast(
+    const x_registers_size: i32 = @intCast(
         self.parent.drivers.len * Registers.X.byte_size,
     );
-    var x_bytes_read: Long = x_registers_size;
-
-    try mdfunc.mdReceiveEx(
+    const x_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
         0, // Network no. must be 0 in CC-Link V.2 boards
         0xFF, // 255 - Own station
         .DevX,
         0x0,
-        &x_bytes_read,
-        Registers.X,
-        self.parent._registers.x,
+        std.mem.sliceAsBytes(self.parent._registers.x),
     );
     std.debug.assert(x_bytes_read == x_registers_size);
 
     // Read Y Registers
-    const y_registers_size: Long = @intCast(
+    const y_registers_size: i32 = @intCast(
         self.parent.drivers.len * Registers.Y.byte_size,
     );
-    var y_bytes_read: Long = y_registers_size;
-    try mdfunc.mdReceiveEx(
+    const y_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
         0,
         0xFF,
         .DevY,
         0x0,
-        &y_bytes_read,
-        Registers.Y,
-        self.parent._registers.y,
+        std.mem.sliceAsBytes(self.parent._registers.y),
     );
     std.debug.assert(y_bytes_read == y_registers_size);
 
     // Read Wr Registers
-    const wr_registers_size: Long = @intCast(
+    const wr_registers_size: i32 = @intCast(
         self.parent.drivers.len * Registers.Wr.byte_size,
     );
-    var wr_bytes_read: Long = wr_registers_size;
-    try mdfunc.mdReceiveEx(
+    const wr_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
         0,
         0xFF,
         .DevWr,
         0x0,
-        &wr_bytes_read,
-        Registers.Wr,
-        self.parent._registers.wr,
+        std.mem.sliceAsBytes(self.parent._registers.wr),
     );
     std.debug.assert(wr_bytes_read == wr_registers_size);
 
     // Read Ww Registers
-    const ww_registers_size: Long = @intCast(
+    const ww_registers_size: i32 = @intCast(
         self.parent.drivers.len * Registers.Ww.byte_size,
     );
-    var ww_bytes_read: Long = ww_registers_size;
-    try mdfunc.mdReceiveEx(
+    const ww_bytes_read: i32 = try mdfunc.receiveEx(
         self.path,
         0,
         0xFF,
         .DevWw,
         0x0,
-        &ww_bytes_read,
-        Registers.Ww,
-        self.parent._registers.ww,
+        std.mem.sliceAsBytes(self.parent._registers.ww),
     );
     std.debug.assert(ww_bytes_read == ww_registers_size);
 }
@@ -111,12 +96,12 @@ pub fn driverLink(
     comptime set: bool,
     driver_id: Connection.Driver.Id,
 ) !void {
-    var devno: Long = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(Registers.Y.bit_size);
     devno *= @intCast(driver_id - 1);
     if (set) {
-        try mdfunc.mdDevSetEx(self.path, 0, 0xFF, .DevY, devno);
+        try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno);
     } else {
-        try mdfunc.mdDevRstEx(self.path, 0, 0xFF, .DevY, devno);
+        try mdfunc.devRstEx(self.path, 0, 0xFF, .DevY, devno);
     }
 }
 
@@ -126,12 +111,12 @@ pub fn commandStart(
     driver_id: Connection.Driver.Id,
 ) !void {
     std.debug.assert(driver_id > 0);
-    var devno: Long = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(Registers.Y.bit_size);
     devno *= driver_id - 1;
     if (set) {
-        try mdfunc.mdDevSetEx(self.path, 0, 0xFF, .DevY, devno + 2);
+        try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 2);
     } else {
-        try mdfunc.mdDevRstEx(self.path, 0, 0xFF, .DevY, devno + 2);
+        try mdfunc.devRstEx(self.path, 0, 0xFF, .DevY, devno + 2);
     }
 }
 
@@ -141,12 +126,12 @@ pub fn commandClearReceived(
     driver_id: Connection.Driver.Id,
 ) !void {
     std.debug.assert(driver_id > 0);
-    var devno: Long = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(Registers.Y.bit_size);
     devno *= driver_id - 1;
     if (set) {
-        try mdfunc.mdDevSetEx(self.path, 0, 0xFF, .DevY, devno + 3);
+        try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 3);
     } else {
-        try mdfunc.mdDevRstEx(self.path, 0, 0xFF, .DevY, devno + 3);
+        try mdfunc.devRstEx(self.path, 0, 0xFF, .DevY, devno + 3);
     }
 }
 
@@ -183,16 +168,16 @@ pub fn axisReleaseServo(
     driver_id: Connection.Driver.Id,
     axis_id_driver: Connection.Axis.IdDriver,
 ) !void {
-    var devno: Long = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(Registers.Y.bit_size);
     devno *= driver_id - 1;
     if (set) {
         const new_ww: Registers.Ww = .{
             .target_axis_number = @intFromEnum(axis_id_driver),
         };
         try self.sendWw(driver_id, new_ww);
-        try mdfunc.mdDevSetEx(self.path, 0, 0xFF, .DevY, devno + 5);
+        try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 5);
     } else {
-        try mdfunc.mdDevRstEx(self.path, 0, 0xFF, .DevY, devno + 5);
+        try mdfunc.devRstEx(self.path, 0, 0xFF, .DevY, devno + 5);
     }
 }
 
@@ -262,12 +247,12 @@ pub fn driverStopAuxTrafficFromNext(
     comptime set: bool,
     driver_id: Connection.Driver.Id,
 ) !void {
-    var devno: Long = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(Registers.Y.bit_size);
     devno *= driver_id - 1;
     if (set) {
-        try mdfunc.mdDevSetEx(self.path, 0, 0xFF, .DevY, devno + 10);
+        try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 10);
     } else {
-        try mdfunc.mdDevRstEx(self.path, 0, 0xFF, .DevY, devno + 10);
+        try mdfunc.devRstEx(self.path, 0, 0xFF, .DevY, devno + 10);
     }
 }
 
@@ -276,12 +261,12 @@ pub fn driverStopAuxTrafficFromPrev(
     comptime set: bool,
     driver_id: Connection.Driver.Id,
 ) !void {
-    var devno: Long = @intCast(Registers.Y.bit_size);
+    var devno: i32 = @intCast(Registers.Y.bit_size);
     devno *= driver_id - 1;
     if (set) {
-        try mdfunc.mdDevSetEx(self.path, 0, 0xFF, .DevY, devno + 9);
+        try mdfunc.devSetEx(self.path, 0, 0xFF, .DevY, devno + 9);
     } else {
-        try mdfunc.mdDevRstEx(self.path, 0, 0xFF, .DevY, devno + 9);
+        try mdfunc.devRstEx(self.path, 0, 0xFF, .DevY, devno + 9);
     }
 }
 
@@ -290,18 +275,15 @@ fn sendWw(
     driver_id: Connection.Driver.Id,
     ww: Registers.Ww,
 ) !void {
-    var bytes_sent: Long = @intCast(Registers.Ww.byte_size);
-    var devno: Long = @intCast(Registers.Ww.short_size);
+    var devno: i32 = @intCast(Registers.Ww.short_size);
     devno *= driver_id - 1;
-    try mdfunc.mdSendEx(
+    const bytes_sent: i32 = try mdfunc.sendEx(
         self.path,
         0,
         0xFF,
         .DevWw,
         devno,
-        &bytes_sent,
-        Registers.Ww,
-        &[_]Registers.Ww{ww},
+        std.mem.asBytes(&ww),
     );
     std.debug.assert(bytes_sent == Registers.Ww.byte_size);
 }
