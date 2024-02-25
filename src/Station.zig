@@ -1,9 +1,5 @@
-//! CC-Link registers
-
-// Station Type: Ver.2 Remote Device Station
-// baud rate: 156kbps
-// Expanded Cyclic: 4x
-// Occupied Station: 1
+//! CC-Link Station. One occupied Ver.2 Remote Device station, 4x Expanded
+//! Cyclic.
 const std = @import("std");
 
 x: X = .{},
@@ -84,7 +80,27 @@ pub const X = packed struct(u64) {
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    _44: u20 = 0,
+    pulling_slider: packed struct(u3) {
+        axis1: bool = false,
+        axis2: bool = false,
+        axis3: bool = false,
+    },
+    _47: u1 = 0,
+    hall_alarm_abnormal: packed struct(u6) {
+        axis1: packed struct(u2) {
+            back: bool,
+            front: bool,
+        },
+        axis2: packed struct(u2) {
+            back: bool,
+            front: bool,
+        },
+        axis3: packed struct(u2) {
+            back: bool,
+            front: bool,
+        },
+    },
+    _54: u10 = 0,
 };
 
 test "X" {
@@ -98,10 +114,10 @@ pub const Y = packed struct(u64) {
     service_enable: bool = false,
     start_command: bool = false,
     reset_command_received: bool = false,
-    cancel_all_slider_commands: bool = false,
+    _4: u1 = 0,
     per_axis_servo_release: bool = false,
     servo_release: bool = false,
-    emergency_stop: bool = false,
+    _7: u1 = 0,
     temporary_pause: bool = false,
     stop_driver_transmission: packed struct(u2) {
         from_prev: bool = false,
@@ -109,11 +125,14 @@ pub const Y = packed struct(u64) {
     } = .{},
     clear_errors: bool = false,
     clear_axis_slider_info: bool = false,
-    _14: u2 = 0,
-    forward_speed_movement: bool = false, // Speed set in WW02. Stopped when 0.
-    backward_speed_movement: bool = false, // Speed set in WW02. Stopped when 0.
     prev_axis_link: bool = false, // During slider speed movement, move with speed linked to prev axis.
     next_axis_link: bool = false, // During slider speed movement, move with speed linked to next axis.
+    _15: u1 = 0,
+    reset_pull_slider: packed struct(u3) {
+        axis1: bool,
+        axis2: bool,
+        axis3: bool,
+    } = .{},
     _19: u45 = 0,
 };
 
@@ -138,24 +157,27 @@ pub const Ww = packed struct(u256) {
     pub const CommandCode = enum(i16) {
         Home = 17,
         // "By Position" commands calculate slider movement by constant hall
-        // sensor position feedback, and is much more precise in destination
-        // but struggles to maintain a constant speed while traveling due to
-        // motor cogging.
+        // sensor position feedback, and is much more precise in destination.
         MoveSliderToAxisByPosition = 18,
         MoveSliderToLocationByPosition = 19,
         MoveSliderDistanceByPosition = 20,
         // "By Speed" commands calculate slider movement by constant hall
         // sensor speed feedback. It should mostly not be used, as the
         // destination position becomes far too imprecise. However, it is
-        // meant to maintain a certain speed while the slider is traveling.
+        // meant to maintain a certain speed while the slider is traveling, and
+        // to avoid the requirement of having a known system position.
         MoveSliderToAxisBySpeed = 21,
         MoveSliderToLocationBySpeed = 22,
         MoveSliderDistanceBySpeed = 23,
         ForwardDirectionSeparation = 24,
         BackwardDirectionSeparation = 25,
         Calibration = 26,
-        Recovery = 27,
-        PerSliderTemporaryRecovery = 28,
+        RecoverSystemSliders = 27,
+        RecoverSliderAtAxis = 28,
+        PushAxisSliderForward = 30,
+        PushAxisSliderBackward = 31,
+        PullAxisSliderForward = 32,
+        PullAxisSliderBackward = 33,
     };
 };
 
@@ -202,7 +224,10 @@ pub const Wr = packed struct(u256) {
         InvalidCommand = 1,
         SliderIdNotFound = 2,
         HomingFailed = 3,
-        InvalidParameterOrState = 4,
+        InvalidParameter = 4,
+        InvalidSystemState = 5,
+        SliderAlreadyExists = 6,
+        InvalidAxisNumber = 7,
     };
 
     pub const SliderStateCode = enum(i16) {

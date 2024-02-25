@@ -12,7 +12,6 @@
 !build.zig.zon
 
 !*.zig
-!*.h
 
 # Blacklist (overrides Whitelist)
 **/zig-out/**

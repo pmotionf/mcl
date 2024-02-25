@@ -1,6 +1,6 @@
 .{
     .name = "MCL",
-    .version = "0.0.8",
+    .version = "0.1.0",
     .dependencies = .{
         .mdfunc = .{
             .url = "https://github.com/pmotionf/mdfunc.zig/archive/87f9aac4628246fad15e0a6f5344d0ff4ce7c20e.tar.gz",
@@ -9,7 +9,6 @@
     },
     .paths = .{
         "src",
-        "include",
         "build.zig",
         "build.zig.zon",
         "version.zig",
