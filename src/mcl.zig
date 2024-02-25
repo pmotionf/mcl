@@ -60,6 +60,7 @@ pub fn pollChannel(
         return error.InvalidStationIndex;
     }
     const end_station_exclusive: u7 = @as(u7, @intCast(end_station_index)) + 1;
+    const num_stations: usize = end_station_exclusive - start_station_index;
     const index = try getChannelIndex(channel);
     var path: i32 = undefined;
     var stations_list: *MultiArrayStation = undefined;
@@ -83,7 +84,7 @@ pub fn pollChannel(
             stations_list.x[start_station_index..end_station_exclusive],
         ),
     );
-    if (x_read_bytes != @sizeOf(Station.X)) {
+    if (x_read_bytes != @sizeOf(Station.X) * num_stations) {
         return error.UnexpectedXReadSize;
     }
     const wr_read_bytes = try mdfunc.receiveEx(
@@ -96,7 +97,7 @@ pub fn pollChannel(
             stations_list.wr[start_station_index..end_station_exclusive],
         ),
     );
-    if (wr_read_bytes != @sizeOf(Station.Wr)) {
+    if (wr_read_bytes != @sizeOf(Station.Wr) * num_stations) {
         return error.UnexpectedWrReadSize;
     }
     const y_read_bytes = try mdfunc.receiveEx(
@@ -109,7 +110,7 @@ pub fn pollChannel(
             stations_list.y[start_station_index..end_station_exclusive],
         ),
     );
-    if (y_read_bytes != @sizeOf(Station.Y)) {
+    if (y_read_bytes != @sizeOf(Station.Y) * num_stations) {
         return error.UnexpectedYReadSize;
     }
     const ww_read_bytes = try mdfunc.receiveEx(
@@ -122,7 +123,7 @@ pub fn pollChannel(
             stations_list.ww[start_station_index..end_station_exclusive],
         ),
     );
-    if (ww_read_bytes != @sizeOf(Station.Ww)) {
+    if (ww_read_bytes != @sizeOf(Station.Ww) * num_stations) {
         return error.UnexpectedWwReadSize;
     }
 }
@@ -255,7 +256,7 @@ pub fn resetStationY(channel: Channel, station_index: u6, y_index: u6) !void {
 }
 
 pub fn sendStationY(channel: Channel, station_index: u6) !void {
-    const index = try getChannelIndex();
+    const index = try getChannelIndex(channel);
     const path: i32 = try getPath(channel);
     if (stations[index]) |*stations_list| {
         const devno: i32 = 16 * @as(i32, station_index);
@@ -268,7 +269,7 @@ pub fn sendStationY(channel: Channel, station_index: u6) !void {
             std.mem.asBytes(&stations_list.y[station_index]),
         );
         if (bytes_sent != @sizeOf(Station.Y)) {
-            return error.UnexpectedSendSize;
+            return error.UnexpectedYSendSize;
         }
     } else {
         return error.ChannelStationsUninitialized;
@@ -276,7 +277,7 @@ pub fn sendStationY(channel: Channel, station_index: u6) !void {
 }
 
 pub fn sendStationWw(channel: Channel, station_index: u6) !void {
-    const index = try getChannelIndex();
+    const index = try getChannelIndex(channel);
     const path: i32 = try getPath(channel);
     if (stations[index]) |*stations_list| {
         const devno: i32 = 16 * @as(i32, station_index);
@@ -289,7 +290,63 @@ pub fn sendStationWw(channel: Channel, station_index: u6) !void {
             std.mem.asBytes(&stations_list.ww[station_index]),
         );
         if (bytes_sent != @sizeOf(Station.Ww)) {
-            return error.UnexpectedSendSize;
+            return error.UnexpectedWwSendSize;
+        }
+    } else {
+        return error.ChannelStationsUninitialized;
+    }
+}
+
+pub fn sendChannelY(
+    channel: Channel,
+    start_station_index: u6,
+    end_station_index: u6,
+) !void {
+    const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
+    const num_stations: usize = end_station_exclusive - start_station_index;
+    const index = try getChannelIndex(channel);
+    const path: i32 = try getPath(channel);
+    if (stations[index]) |*stations_list| {
+        const bytes_sent: i32 = try mdfunc.sendEx(
+            path,
+            0,
+            0xFF,
+            .DevY,
+            0,
+            std.mem.sliceAsBytes(
+                stations_list.y[start_station_index..end_station_exclusive],
+            ),
+        );
+        if (bytes_sent != @sizeOf(Station.Y) * num_stations) {
+            return error.UnexpectedYSendSize;
+        }
+    } else {
+        return error.ChannelStationsUninitialized;
+    }
+}
+
+pub fn sendChannelWw(
+    channel: Channel,
+    start_station_index: u6,
+    end_station_index: u6,
+) !void {
+    const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
+    const num_stations: usize = end_station_exclusive - start_station_index;
+    const index = try getChannelIndex(channel);
+    const path: i32 = try getPath(channel);
+    if (stations[index]) |*stations_list| {
+        const bytes_sent: i32 = try mdfunc.sendEx(
+            path,
+            0,
+            0xFF,
+            .DevWw,
+            0,
+            std.mem.sliceAsBytes(
+                stations_list.ww[start_station_index..end_station_exclusive],
+            ),
+        );
+        if (bytes_sent != @sizeOf(Station.Ww) * num_stations) {
+            return error.UnexpectedWwSendSize;
         }
     } else {
         return error.ChannelStationsUninitialized;
