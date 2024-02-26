@@ -84,22 +84,22 @@ pub const X = packed struct(u64) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
-    },
+    } = .{},
     _47: u1 = 0,
     hall_alarm_abnormal: packed struct(u6) {
         axis1: packed struct(u2) {
-            back: bool,
-            front: bool,
-        },
+            back: bool = false,
+            front: bool = false,
+        } = .{},
         axis2: packed struct(u2) {
-            back: bool,
-            front: bool,
-        },
+            back: bool = false,
+            front: bool = false,
+        } = .{},
         axis3: packed struct(u2) {
-            back: bool,
-            front: bool,
-        },
-    },
+            back: bool = false,
+            front: bool = false,
+        } = .{},
+    } = .{},
     _54: u10 = 0,
 };
 
@@ -129,9 +129,9 @@ pub const Y = packed struct(u64) {
     next_axis_link: bool = false, // During slider speed movement, move with speed linked to next axis.
     _15: u1 = 0,
     reset_pull_slider: packed struct(u3) {
-        axis1: bool,
-        axis2: bool,
-        axis3: bool,
+        axis1: bool = false,
+        axis2: bool = false,
+        axis3: bool = false,
     } = .{},
     _19: u45 = 0,
 };

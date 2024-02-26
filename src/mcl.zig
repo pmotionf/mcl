@@ -12,14 +12,14 @@ pub const StationReference = struct {
 };
 
 const MultiArrayStation = struct {
-    x: [64]Station.X,
-    y: [64]Station.Y,
-    wr: [64]Station.Wr,
-    ww: [64]Station.Ww,
+    x: [64]Station.X = [_]Station.X{.{}} ** 64,
+    y: [64]Station.Y = [_]Station.Y{.{}} ** 64,
+    wr: [64]Station.Wr = [_]Station.Wr{.{}} ** 64,
+    ww: [64]Station.Ww = [_]Station.Ww{.{}} ** 64,
 };
 
 /// Up to 4 paths, each path representing a CC-Link card in a different slot.
-pub var paths: [4]?i32 = .{
+var paths: [4]?i32 = .{
     null,
     null,
     null,
@@ -27,7 +27,7 @@ pub var paths: [4]?i32 = .{
 };
 /// Maximum of 64 Stations per connected CC-Link card, at 1x extended cyclic.
 /// At 4x, should be a maximum of 16 Stations per connected CC-Link card.
-pub var stations: [4]?MultiArrayStation = .{
+var stations: [4]?MultiArrayStation = .{
     null,
     null,
     null,
