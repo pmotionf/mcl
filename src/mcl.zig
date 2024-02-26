@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const v = @import("version");
 const mdfunc = @import("mdfunc");
 
 pub const Station = @import("Station.zig");
@@ -33,6 +34,11 @@ var stations: [4]?MultiArrayStation = .{
     null,
     null,
 };
+
+pub fn version() std.SemanticVersion {
+    // Version string guaranteed to be correct, defined in `version.zig`.
+    return std.SemanticVersion.parse(v.mcl_version) catch unreachable;
+}
 
 pub fn openChannel(channel: Channel) !void {
     const index = try getChannelIndex(channel);
