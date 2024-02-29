@@ -8,8 +8,8 @@ pub const Channel = mdfunc.Channel;
 pub const StationReference = struct {
     x: *Station.X,
     y: *Station.Y,
-    wr: *Station.wr,
-    ww: *Station.ww,
+    wr: *Station.Wr,
+    ww: *Station.Ww,
 };
 
 const MultiArrayStation = struct {
