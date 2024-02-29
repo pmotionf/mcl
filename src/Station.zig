@@ -324,8 +324,8 @@ pub const Wr = packed struct(u256) {
         PosMoveProgressing = 29,
         PosMoveCompleted = 30,
         PosMoveFault = 31,
-        CalibrationProgressing = 32,
-        CalibrationCompleted = 33,
+        ForwardCalibrationProgressing = 32,
+        ForwardCalibrationCompleted = 33,
         SpdMoveProgressing = 40,
         SpdMoveCompleted = 41,
         SpdMoveFault = 42,
@@ -341,6 +341,14 @@ pub const Wr = packed struct(u256) {
         PrevAxisCompleted = 46,
         Overcurrent = 50,
         CommunicationError = 51,
+        PullForward = 52,
+        PullForwardCompleted = 53,
+        PullForwardFault = 54,
+        PullBackward = 55,
+        PullBackwardCompleted = 56,
+        PullBackwardFault = 57,
+        BackwardCalibrationProgressing = 58,
+        BackwardCalibrationCompleted = 59,
     };
 
     pub fn sliderNumber(self: Wr, axis_index: u2) i16 {
