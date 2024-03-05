@@ -97,7 +97,7 @@ pub fn pollChannel(
         path,
         0,
         0xFF,
-        .DevY,
+        .DevWr,
         0x0,
         std.mem.sliceAsBytes(
             stations_list.wr[start_station_index..end_station_exclusive],
@@ -158,7 +158,7 @@ pub fn pollStation(channel: Channel, station_index: u6) !void {
         path,
         0,
         0xFF,
-        .DevY,
+        .DevWr,
         @as(i32, @intCast(station_index)) * @bitSizeOf(Station.Wr),
         std.mem.asBytes(&stations_list.wr[station_index]),
     );
