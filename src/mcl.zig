@@ -361,10 +361,10 @@ pub fn sendChannelWw(
 
 fn getChannelIndex(channel: Channel) !u2 {
     return switch (channel) {
-        .cc_link_1slot => 0,
-        .cc_link_2slot => 1,
-        .cc_link_3slot => 2,
-        .cc_link_4slot => 3,
+        .@"CC-Link (1 slot)" => 0,
+        .@"CC-Link (2 slot)" => 1,
+        .@"CC-Link (3 slot)" => 2,
+        .@"CC-Link (4 slot)" => 3,
         else => return error.UnsupportedChannel,
     };
 }
