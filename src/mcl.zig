@@ -159,7 +159,7 @@ pub fn pollStation(channel: Channel, station_index: u6) !void {
         0,
         0xFF,
         .DevWr,
-        @as(i32, @intCast(station_index)) * @bitSizeOf(Station.Wr),
+        @as(i32, @intCast(station_index)) * 16,
         std.mem.asBytes(&stations_list.wr[station_index]),
     );
     if (wr_read_bytes != @sizeOf(Station.Wr)) {
@@ -181,7 +181,7 @@ pub fn pollStation(channel: Channel, station_index: u6) !void {
         0,
         0xFF,
         .DevWw,
-        @as(i32, @intCast(station_index)) * @bitSizeOf(Station.Ww),
+        @as(i32, @intCast(station_index)) * 16,
         std.mem.asBytes(&stations_list.ww[station_index]),
     );
     if (ww_read_bytes != @sizeOf(Station.Ww)) {
