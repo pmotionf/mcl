@@ -3,8 +3,8 @@
     .version = "0.1.0",
     .dependencies = .{
         .mdfunc = .{
-            .url = "https://github.com/pmotionf/mdfunc.zig/archive/256421f2c13b6f6460f013db1a2472c42ea3f107.tar.gz",
-            .hash = "1220b34dc2f815eee2c0c8894efbf046c334ac90c6a975dab699c584f843d87b473e",
+            .url = "https://github.com/pmotionf/mdfunc.zig/archive/71327debd86553004251ac6594bfc703ef646a65.tar.gz",
+            .hash = "122045b49a764072e0a8f289a91d18b99974ada5b0b951d42ac9fc40e656bbbcaaca",
         },
     },
     .paths = .{
