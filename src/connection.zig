@@ -66,7 +66,7 @@ pub fn openChannel(channel: Channel) MelsecError!void {
     stations[index] = .{};
 }
 
-pub fn closeChannel(channel: Channel) error{ StateError, MelsecError }!void {
+pub fn closeChannel(channel: Channel) (StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     if (paths[index]) |path| {
         try mdfunc.close(path);
@@ -80,7 +80,7 @@ pub fn pollStations(
     channel: Channel,
     start_station_index: u6,
     end_station_index: u6,
-) error{ ConnectionError, StateError, MelsecError }!void {
+) (ConnectionError || StateError || MelsecError)!void {
     const end_station_exclusive: u7 = @as(u7, @intCast(end_station_index)) + 1;
     const num_stations: usize = end_station_exclusive - start_station_index;
     const index: u2 = @intFromEnum(channel);
@@ -155,11 +155,10 @@ pub fn pollStations(
 }
 
 /// Poll and update station from channel.
-pub fn pollStation(channel: Channel, station_index: u6) error{
-    ConnectionError,
-    StateError,
-    MelsecError,
-}!void {
+pub fn pollStation(
+    channel: Channel,
+    station_index: u6,
+) (ConnectionError || StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     var path: i32 = undefined;
     var stations_list: *MultiArrayStation = undefined;
@@ -283,7 +282,7 @@ pub fn stationSetY(
     station_index: u6,
     /// Bitwise offset of desired field (0..).
     y_offset: u6,
-) error{ StateError, MelsecError }!void {
+) (StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     const path: i32 = if (paths[index]) |p|
         p
@@ -304,7 +303,7 @@ pub fn stationResetY(
     station_index: u6,
     /// Bitwise offset of desired field (0..).
     y_offset: u6,
-) error{ StateError, MelsecError }!void {
+) (StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     const path: i32 = if (paths[index]) |p|
         p
@@ -321,11 +320,10 @@ pub fn stationResetY(
 }
 
 /// Send station's local Ww and Y registers, in that order, to motion system.
-pub fn sendStation(channel: Channel, station_index: u6) error{
-    ConnectionError,
-    StateError,
-    MelsecError,
-}!void {
+pub fn sendStation(
+    channel: Channel,
+    station_index: u6,
+) (ConnectionError || StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     const path: i32 = if (paths[index]) |p|
         p
@@ -363,11 +361,10 @@ pub fn sendStation(channel: Channel, station_index: u6) error{
     }
 }
 
-pub fn sendStationY(channel: Channel, station_index: u6) error{
-    ConnectionError,
-    StateError,
-    MelsecError,
-}!void {
+pub fn sendStationY(
+    channel: Channel,
+    station_index: u6,
+) (ConnectionError || StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     const path: i32 = if (paths[index]) |p|
         p
@@ -390,11 +387,10 @@ pub fn sendStationY(channel: Channel, station_index: u6) error{
     }
 }
 
-pub fn sendStationWw(channel: Channel, station_index: u6) error{
-    ConnectionError,
-    StateError,
-    MelsecError,
-}!void {
+pub fn sendStationWw(
+    channel: Channel,
+    station_index: u6,
+) (ConnectionError || StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     const path: i32 = if (paths[index]) |p|
         p
@@ -423,7 +419,7 @@ pub fn sendStations(
     channel: Channel,
     start_station_index: u6,
     end_station_index: u6,
-) error{ ConnectionError, StateError, MelsecError }!void {
+) (ConnectionError || StateError || MelsecError)!void {
     const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
     const num_stations: usize = end_station_exclusive - start_station_index;
     const index: u2 = @intFromEnum(channel);
@@ -469,7 +465,7 @@ pub fn sendStationsY(
     channel: Channel,
     start_station_index: u6,
     end_station_index: u6,
-) error{ ConnectionError, StateError, MelsecError }!void {
+) (ConnectionError || StateError || MelsecError)!void {
     const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
     const num_stations: usize = end_station_exclusive - start_station_index;
     const index: u2 = @intFromEnum(channel);
@@ -500,7 +496,7 @@ pub fn sendStationsWw(
     channel: Channel,
     start_station_index: u6,
     end_station_index: u6,
-) error{ ConnectionError, StateError, MelsecError }!void {
+) (ConnectionError || StateError || MelsecError)!void {
     const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
     const num_stations: usize = end_station_exclusive - start_station_index;
     const index: u2 = @intFromEnum(channel);
