@@ -2,6 +2,13 @@
 //! Cyclic.
 const std = @import("std");
 
+pub const Reference = struct {
+    x: *X,
+    y: *Y,
+    wr: *Wr,
+    ww: *Ww,
+};
+
 pub const Distance = packed struct(u32) {
     mm: i16 = 0,
     um: i16 = 0,
@@ -9,8 +16,8 @@ pub const Distance = packed struct(u32) {
 
 x: X = .{},
 y: Y = .{},
-ww: Ww = .{},
 wr: Wr = .{},
+ww: Ww = .{},
 
 /// Registers written through CC-Link's "DevX" device. Used as a "read"
 /// register bank.
