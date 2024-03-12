@@ -2,6 +2,14 @@
 //! Cyclic.
 const std = @import("std");
 
+pub const Index = u6;
+
+/// Inclusive index range of stations.
+pub const IndexRange = struct {
+    start: u6,
+    end: u6,
+};
+
 pub const Reference = struct {
     x: *X,
     y: *Y,

@@ -1,8 +1,12 @@
 //! This module represents the host PC's connection to the motion system.
+const connection = @This();
+
 const std = @import("std");
 const mdfunc = @import("mdfunc");
 
 pub const Station = @import("connection/Station.zig");
+const Index = Station.Index;
+const Range = Station.IndexRange;
 
 // Restricts available channels for connection to 4 CC-Link slots.
 pub const Channel = enum(u2) {
@@ -18,6 +22,38 @@ pub const Channel = enum(u2) {
             .cc_link_3slot => mdfunc.Channel.@"CC-Link (3 slot)",
             .cc_link_4slot => mdfunc.Channel.@"CC-Link (4 slot)",
         };
+    }
+
+    /// Get path of channel.
+    fn path(self: Channel) ?i32 {
+        return paths[@intFromEnum(self)];
+    }
+
+    /// Get path of channel, asserting that the path is opened.
+    fn openedPath(self: Channel) !i32 {
+        const chan_idx: u2 = @intFromEnum(self);
+        if (paths[chan_idx]) |p| {
+            return p;
+        } else {
+            return StateError.ChannelUnopened;
+        }
+    }
+
+    /// Get stations of channel. Constant station list is returned as fields
+    /// are mutable slices.
+    fn stations(self: Channel) ?MultiArrayStation {
+        return connection.stations[@intFromEnum(self)];
+    }
+
+    /// Get stations of channel asserting that the station list is initialized.
+    /// Constant station list is returned as fields are mutable slices.
+    fn initializedStations(self: Channel) MultiArrayStation {
+        const chan_idx: u2 = @intFromEnum(self);
+        if (connection.stations[chan_idx]) |s| {
+            return s;
+        } else {
+            return StateError.ChannelStationsUninitialized;
+        }
     }
 };
 
@@ -70,6 +106,8 @@ pub fn closeChannel(channel: Channel) (StateError || MelsecError)!void {
     const index: u2 = @intFromEnum(channel);
     if (paths[index]) |path| {
         try mdfunc.close(path);
+        paths[index] = null;
+        stations[index] = null;
     } else {
         return StateError.ChannelUnopened;
     }
@@ -78,223 +116,166 @@ pub fn closeChannel(channel: Channel) (StateError || MelsecError)!void {
 /// Poll and update station inclusive range from channel.
 pub fn pollStations(
     channel: Channel,
-    start_station_index: u6,
-    end_station_index: u6,
+    range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const end_station_exclusive: u7 = @as(u7, @intCast(end_station_index)) + 1;
-    const num_stations: usize = end_station_exclusive - start_station_index;
-    const index: u2 = @intFromEnum(channel);
-    var path: i32 = undefined;
-    var stations_list: *MultiArrayStation = undefined;
-    if (paths[index]) |p| {
-        path = p;
-        if (stations[index]) |*s| {
-            stations_list = s;
-        } else {
-            return StateError.ChannelStationsUninitialized;
-        }
-    } else {
-        return StateError.ChannelUnopened;
-    }
+    const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
 
-    const x_read_bytes = try mdfunc.receiveEx(
+    try receiveX(
         path,
-        0,
-        0xFF,
-        .DevX,
-        @as(i32, @intCast(start_station_index)) * @bitSizeOf(Station.X),
-        std.mem.sliceAsBytes(
-            stations_list.x[start_station_index..end_station_exclusive],
-        ),
+        range,
+        std.mem.sliceAsBytes(stations_list.x[range.start..end_exclusive]),
     );
-    if (x_read_bytes != @sizeOf(Station.X) * num_stations) {
-        return ConnectionError.UnexpectedReadSizeX;
-    }
+    try receiveWr(
+        path,
+        range,
+        std.mem.sliceAsBytes(stations_list.wr[range.start..end_exclusive]),
+    );
+    try receiveY(
+        path,
+        range,
+        std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
+    );
+    try receiveWw(
+        path,
+        range,
+        std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
+    );
+}
 
-    const wr_read_bytes = try mdfunc.receiveEx(
+pub fn pollStationsX(
+    channel: Channel,
+    range: Range,
+) (ConnectionError || StateError || MelsecError)!void {
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
+    try receiveX(
         path,
-        0,
-        0xFF,
-        .DevWr,
-        @as(i32, @intCast(start_station_index)) * 16,
-        std.mem.sliceAsBytes(
-            stations_list.wr[start_station_index..end_station_exclusive],
-        ),
+        range,
+        std.mem.sliceAsBytes(stations_list.x[range.start..end_exclusive]),
     );
-    if (wr_read_bytes != @sizeOf(Station.Wr) * num_stations) {
-        return ConnectionError.UnexpectedReadSizeWr;
-    }
+}
 
-    const y_read_bytes = try mdfunc.receiveEx(
+pub fn pollStationsWr(
+    channel: Channel,
+    range: Range,
+) (ConnectionError || StateError || MelsecError)!void {
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
+    try receiveWr(
         path,
-        0,
-        0xFF,
-        .DevY,
-        @as(i32, @intCast(start_station_index)) * @bitSizeOf(Station.Y),
-        std.mem.sliceAsBytes(
-            stations_list.y[start_station_index..end_station_exclusive],
-        ),
+        range,
+        std.mem.sliceAsBytes(stations_list.wr[range.start..end_exclusive]),
     );
-    if (y_read_bytes != @sizeOf(Station.Y) * num_stations) {
-        return ConnectionError.UnexpectedReadSizeY;
-    }
-
-    const ww_read_bytes = try mdfunc.receiveEx(
-        path,
-        0,
-        0xFF,
-        .DevWw,
-        @as(i32, @intCast(start_station_index)) * 16,
-        std.mem.sliceAsBytes(
-            stations_list.ww[start_station_index..end_station_exclusive],
-        ),
-    );
-    if (ww_read_bytes != @sizeOf(Station.Ww) * num_stations) {
-        return ConnectionError.UnexpectedReadSizeWw;
-    }
 }
 
 /// Poll and update station from channel.
 pub fn pollStation(
     channel: Channel,
-    station_index: u6,
+    index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    var path: i32 = undefined;
-    var stations_list: *MultiArrayStation = undefined;
-    if (paths[index]) |p| {
-        path = p;
-        if (stations[index]) |*s| {
-            stations_list = s;
-        } else {
-            return StateError.ChannelStationsUninitialized;
-        }
-    } else {
-        return StateError.ChannelUnopened;
-    }
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
 
-    const x_read_bytes = try mdfunc.receiveEx(
+    try receiveX(
         path,
-        0,
-        0xFF,
-        .DevX,
-        @as(i32, @intCast(station_index)) * @bitSizeOf(Station.X),
-        std.mem.asBytes(&stations_list.x[station_index]),
+        .{ .start = index, .end = index },
+        std.mem.asBytes(&stations_list.x[index]),
     );
-    if (x_read_bytes != @sizeOf(Station.X)) {
-        return ConnectionError.UnexpectedReadSizeX;
-    }
+    try receiveWr(
+        path,
+        .{ .start = index, .end = index },
+        std.mem.asBytes(&stations_list.wr[index]),
+    );
+    try receiveY(
+        path,
+        .{ .start = index, .end = index },
+        std.mem.asBytes(&stations_list.y[index]),
+    );
+    try receiveWw(
+        path,
+        .{ .start = index, .end = index },
+        std.mem.asBytes(&stations_list.ww[index]),
+    );
+}
 
-    const wr_read_bytes = try mdfunc.receiveEx(
+pub fn pollStationX(
+    channel: Channel,
+    index: Index,
+) (ConnectionError || StateError || MelsecError)!void {
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try receiveX(
         path,
-        0,
-        0xFF,
-        .DevWr,
-        @as(i32, @intCast(station_index)) * 16,
-        std.mem.asBytes(&stations_list.wr[station_index]),
+        .{ .start = index, .end = index },
+        std.mem.asBytes(&stations_list.x[index]),
     );
-    if (wr_read_bytes != @sizeOf(Station.Wr)) {
-        return ConnectionError.UnexpectedReadSizeWr;
-    }
+}
 
-    const y_read_bytes = try mdfunc.receiveEx(
+pub fn pollStationWr(
+    channel: Channel,
+    index: Index,
+) (ConnectionError || StateError || MelsecError)!void {
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try receiveWr(
         path,
-        0,
-        0xFF,
-        .DevY,
-        @as(i32, @intCast(station_index)) * @bitSizeOf(Station.Y),
-        std.mem.asBytes(&stations_list.y[station_index]),
+        .{ .start = index, .end = index },
+        std.mem.asBytes(&stations_list.wr[index]),
     );
-    if (y_read_bytes != @sizeOf(Station.Y)) {
-        return ConnectionError.UnexpectedReadSizeY;
-    }
-
-    const ww_read_bytes = try mdfunc.receiveEx(
-        path,
-        0,
-        0xFF,
-        .DevWw,
-        @as(i32, @intCast(station_index)) * 16,
-        std.mem.asBytes(&stations_list.ww[station_index]),
-    );
-    if (ww_read_bytes != @sizeOf(Station.Ww)) {
-        return ConnectionError.UnexpectedReadSizeWw;
-    }
 }
 
 /// Get mutable reference to station state. Station state must be updated with
 /// polls, and will only synchronize to motion system if sent.
 pub fn station(
     channel: Channel,
-    station_index: u6,
+    index: Index,
 ) StateError!Station.Reference {
-    const index: u2 = @intFromEnum(channel);
-    if (stations[index]) |*s| {
-        return .{
-            .x = &s.x[station_index],
-            .y = &s.y[station_index],
-            .wr = &s.wr[station_index],
-            .ww = &s.ww[station_index],
-        };
-    } else {
-        return StateError.ChannelStationsUninitialized;
-    }
+    const stations_list = try channel.initializedStations();
+    return .{
+        .x = &stations_list.x[index],
+        .y = &stations_list.y[index],
+        .wr = &stations_list.wr[index],
+        .ww = &stations_list.ww[index],
+    };
 }
 
-pub fn stationX(channel: Channel, station_index: u6) StateError!*Station.X {
-    const index: u2 = @intFromEnum(channel);
-    if (stations[index]) |*s| {
-        return &s.x[station_index];
-    } else {
-        return StateError.ChannelStationsUninitialized;
-    }
+pub fn stationX(channel: Channel, index: Index) StateError!*Station.X {
+    const stations_list = try channel.initializedStations();
+    return &stations_list.x[index];
 }
 
-pub fn stationY(channel: Channel, station_index: u6) StateError!*Station.Y {
-    const index: u2 = @intFromEnum(channel);
-    if (stations[index]) |*s| {
-        return &s.y[station_index];
-    } else {
-        return StateError.ChannelStationsUninitialized;
-    }
+pub fn stationY(channel: Channel, index: Index) StateError!*Station.Y {
+    const stations_list = try channel.initializedStations();
+    return &stations_list.y[index];
 }
 
-pub fn stationWr(channel: Channel, station_index: u6) StateError!*Station.Wr {
-    const index: u2 = @intFromEnum(channel);
-    if (stations[index]) |*s| {
-        return &s.wr[station_index];
-    } else {
-        return StateError.ChannelStationsUninitialized;
-    }
+pub fn stationWr(channel: Channel, index: Index) StateError!*Station.Wr {
+    const stations_list = try channel.initializedStations();
+    return &stations_list.wr[index];
 }
 
-pub fn stationWw(channel: Channel, station_index: u6) StateError!*Station.Ww {
-    const index: u2 = @intFromEnum(channel);
-    if (stations[index]) |*s| {
-        return &s.ww[station_index];
-    } else {
-        return StateError.ChannelStationsUninitialized;
-    }
+pub fn stationWw(channel: Channel, index: Index) StateError!*Station.Ww {
+    const stations_list = try channel.initializedStations();
+    return &stations_list.ww[index];
 }
 
 pub fn setStationY(
     channel: Channel,
-    station_index: u6,
+    index: Index,
     /// Bitwise offset of desired field (0..).
     y_offset: u6,
 ) (StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
-
+    const path: i32 = try channel.openedPath();
     try mdfunc.devSetEx(
         path,
         0,
         0xFF,
         .DevY,
-        @as(i32, station_index) * @bitSizeOf(Station.Y) + @as(i32, y_offset),
+        @as(i32, index) * @bitSizeOf(Station.Y) + @as(i32, y_offset),
     );
 }
 
@@ -304,12 +285,7 @@ pub fn resetStationY(
     /// Bitwise offset of desired field (0..).
     y_offset: u6,
 ) (StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
-
+    const path: i32 = try channel.openedPath();
     try mdfunc.devRstEx(
         path,
         0,
@@ -322,203 +298,216 @@ pub fn resetStationY(
 /// Send station's local Ww and Y registers, in that order, to motion system.
 pub fn sendStation(
     channel: Channel,
-    station_index: u6,
+    index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
-
-    if (stations[index]) |*stations_list| {
-        const devno: i32 = 16 * @as(i32, station_index);
-
-        const ww_bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevWw,
-            devno,
-            std.mem.asBytes(&stations_list.ww[station_index]),
-        );
-        if (ww_bytes_sent != @sizeOf(Station.Ww)) {
-            return ConnectionError.UnexpectedSendSizeWw;
-        }
-
-        const y_bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            devno,
-            std.mem.asBytes(&stations_list.y[station_index]),
-        );
-        if (y_bytes_sent != @sizeOf(Station.Y)) {
-            return ConnectionError.UnexpectedSendSizeY;
-        }
-    } else {
-        return StateError.ChannelStationsUninitialized;
-    }
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try send(
+        path,
+        .{ .start = index, .end = index },
+        .DevWw,
+        std.mem.asBytes(&stations_list.ww[index]),
+    );
+    try send(
+        path,
+        .{ .start = index, .end = index },
+        .DevY,
+        std.mem.asBytes(&stations_list.y[index]),
+    );
 }
 
 pub fn sendStationY(
     channel: Channel,
-    station_index: u6,
+    index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
-
-    if (stations[index]) |*stations_list| {
-        const devno: i32 = 16 * @as(i32, station_index);
-        const bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            devno,
-            std.mem.asBytes(&stations_list.y[station_index]),
-        );
-        if (bytes_sent != @sizeOf(Station.Y)) {
-            return ConnectionError.UnexpectedSendSizeY;
-        }
-    }
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try send(
+        path,
+        .{ .start = index, .end = index },
+        .DevY,
+        std.mem.asBytes(&stations_list.y[index]),
+    );
 }
 
 pub fn sendStationWw(
     channel: Channel,
-    station_index: u6,
+    index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
-
-    if (stations[index]) |*stations_list| {
-        const devno: i32 = 16 * @as(i32, station_index);
-        const bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevWw,
-            devno,
-            std.mem.asBytes(&stations_list.ww[station_index]),
-        );
-        if (bytes_sent != @sizeOf(Station.Ww)) {
-            return ConnectionError.UnexpectedSendSizeWw;
-        }
-    }
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try send(
+        path,
+        .{ .start = index, .end = index },
+        .DevWw,
+        std.mem.asBytes(&stations_list.ww[index]),
+    );
 }
 
 /// Send channel's station inclusive range of local Ww and Y registers, in that
 /// order, to motion system.
 pub fn sendStations(
     channel: Channel,
-    start_station_index: u6,
-    end_station_index: u6,
+    range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
-    const num_stations: usize = end_station_exclusive - start_station_index;
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
+    const end_exclusive: u7 = @as(u7, range.end) + 1;
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
 
-    if (stations[index]) |*stations_list| {
-        const devno: i32 = 16 * @as(i32, start_station_index);
-
-        const ww_bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevWw,
-            devno,
-            std.mem.sliceAsBytes(
-                stations_list.ww[start_station_index..end_station_exclusive],
-            ),
-        );
-        if (ww_bytes_sent != @sizeOf(Station.Ww) * num_stations) {
-            return ConnectionError.UnexpectedSendSizeWw;
-        }
-
-        const y_bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            devno,
-            std.mem.sliceAsBytes(
-                stations_list.y[start_station_index..end_station_exclusive],
-            ),
-        );
-        if (y_bytes_sent != @sizeOf(Station.Y) * num_stations) {
-            return ConnectionError.UnexpectedSendSizeY;
-        }
-    }
+    try send(
+        path,
+        range,
+        .DevWw,
+        std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
+    );
+    try send(
+        path,
+        range,
+        .DevY,
+        std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
+    );
 }
 
 pub fn sendStationsY(
     channel: Channel,
-    start_station_index: u6,
-    end_station_index: u6,
+    range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
-    const num_stations: usize = end_station_exclusive - start_station_index;
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
-
-    if (stations[index]) |*stations_list| {
-        const devno: i32 = 16 * @as(i32, start_station_index);
-        const y_bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            devno,
-            std.mem.sliceAsBytes(
-                stations_list.y[start_station_index..end_station_exclusive],
-            ),
-        );
-        if (y_bytes_sent != @sizeOf(Station.Y) * num_stations) {
-            return ConnectionError.UnexpectedSendSizeY;
-        }
-    }
+    const end_exclusive: u7 = @as(u7, range.end) + 1;
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try send(
+        path,
+        range,
+        .DevY,
+        std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
+    );
 }
 
 pub fn sendStationsWw(
     channel: Channel,
-    start_station_index: u6,
-    end_station_index: u6,
+    range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const end_station_exclusive: u7 = @as(u7, end_station_index) + 1;
-    const num_stations: usize = end_station_exclusive - start_station_index;
-    const index: u2 = @intFromEnum(channel);
-    const path: i32 = if (paths[index]) |p|
-        p
-    else
-        return StateError.ChannelUnopened;
+    const end_exclusive: u7 = @as(u7, range.end) + 1;
+    const path: i32 = try channel.openedPath();
+    const stations_list = try channel.initializedStations();
+    try send(
+        path,
+        range,
+        .DevWw,
+        std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
+    );
+}
 
-    if (stations[index]) |*stations_list| {
-        const devno: i32 = 16 * @as(i32, start_station_index);
-        const ww_bytes_sent: i32 = try mdfunc.sendEx(
-            path,
-            0,
-            0xFF,
-            .DevWw,
-            devno,
-            std.mem.sliceAsBytes(
-                stations_list.ww[start_station_index..end_station_exclusive],
-            ),
-        );
-        if (ww_bytes_sent != @sizeOf(Station.Ww) * num_stations) {
-            return ConnectionError.UnexpectedSendSizeWw;
-        }
+fn receiveX(
+    path: i32,
+    range: Range,
+    dest: []u8,
+) (ConnectionError || MelsecError)!void {
+    const read_bytes = try mdfunc.receiveEx(
+        path,
+        0,
+        0xFF,
+        .DevX,
+        @as(i32, @intCast(range.start)) * @bitSizeOf(Station.X),
+        dest,
+    );
+    if (read_bytes != @sizeOf(Station.X) * (@as(
+        usize,
+        @intCast(range.end - range.start),
+    ) + 1)) {
+        return ConnectionError.UnexpectedReadSizeX;
+    }
+}
+
+fn receiveY(
+    path: i32,
+    range: Range,
+    dest: []u8,
+) (ConnectionError || MelsecError)!void {
+    const read_bytes = try mdfunc.receiveEx(
+        path,
+        0,
+        0xFF,
+        .DevY,
+        @as(i32, @intCast(range.start)) * @bitSizeOf(Station.Y),
+        dest,
+    );
+    if (read_bytes != @sizeOf(Station.Y) * (@as(
+        usize,
+        @intCast(range.end - range.start),
+    ) + 1)) {
+        return ConnectionError.UnexpectedReadSizeY;
+    }
+}
+
+fn receiveWr(
+    path: i32,
+    range: Range,
+    dest: []u8,
+) (ConnectionError || MelsecError)!void {
+    const read_bytes = try mdfunc.receiveEx(
+        path,
+        0,
+        0xFF,
+        .DevWr,
+        @as(i32, @intCast(range.start)) * 16,
+        dest,
+    );
+    if (read_bytes != @sizeOf(Station.Wr) * (@as(
+        usize,
+        @intCast(range.end - range.start),
+    ) + 1)) {
+        return ConnectionError.UnexpectedReadSizeWr;
+    }
+}
+
+fn receiveWw(
+    path: i32,
+    range: Range,
+    dest: []u8,
+) (ConnectionError || MelsecError)!void {
+    const read_bytes = try mdfunc.receiveEx(
+        path,
+        0,
+        0xFF,
+        .DevWw,
+        @as(i32, @intCast(range.start)) * 16,
+        dest,
+    );
+    if (read_bytes != @sizeOf(Station.Ww) * (@as(
+        usize,
+        @intCast(range.end - range.start),
+    ) + 1)) {
+        return ConnectionError.UnexpectedReadSizeWw;
+    }
+}
+
+fn send(
+    path: i32,
+    range: Range,
+    device: mdfunc.Device,
+    source: []const u8,
+) (ConnectionError || MelsecError)!void {
+    const devno: i32 = 16 * @as(i32, range.start);
+    const bytes_sent = try mdfunc.sendEx(path, 0, 0xFF, device, devno, source);
+    switch (device) {
+        .DevY => {
+            if (bytes_sent != @sizeOf(Station.Y) * (@as(
+                usize,
+                @intCast(range.start - range.end),
+            ) + 1)) {
+                return ConnectionError.UnexpectedSendSizeY;
+            }
+        },
+        .DevWw => {
+            if (bytes_sent != @sizeOf(Station.Ww) * (@as(
+                usize,
+                @intCast(range.start - range.end),
+            ) + 1)) {
+                return ConnectionError.UnexpectedSendSizeWw;
+            }
+        },
+        // Only Wr and Y devices are valid to send.
+        else => unreachable,
     }
 }
