@@ -277,7 +277,7 @@ pub fn stationWw(channel: Channel, station_index: u6) StateError!*Station.Ww {
     }
 }
 
-pub fn stationSetY(
+pub fn setStationY(
     channel: Channel,
     station_index: u6,
     /// Bitwise offset of desired field (0..).
@@ -298,7 +298,7 @@ pub fn stationSetY(
     );
 }
 
-pub fn stationResetY(
+pub fn resetStationY(
     channel: Channel,
     station_index: u6,
     /// Bitwise offset of desired field (0..).
