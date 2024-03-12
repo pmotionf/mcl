@@ -1,10 +1,11 @@
 .{
     .name = "MCL",
     .version = "0.1.1",
+    .minimum_zig_version = "0.12.0-dev.3269+0c6146677",
     .dependencies = .{
         .mdfunc = .{
-            .url = "https://github.com/pmotionf/mdfunc.zig/archive/71327debd86553004251ac6594bfc703ef646a65.tar.gz",
-            .hash = "122045b49a764072e0a8f289a91d18b99974ada5b0b951d42ac9fc40e656bbbcaaca",
+            .url = "https://github.com/pmotionf/mdfunc.zig/archive/dfe8a320fbbdf5cb7002335e380cd29d24e3dbf6.tar.gz",
+            .hash = "12205b75a372e9f4bc270d47b72c39a9f170e6ca6a262537f51feffd745fc6263cc3",
         },
     },
     .paths = .{
