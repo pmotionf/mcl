@@ -120,7 +120,7 @@ pub fn pollStations(
 ) (ConnectionError || StateError || MelsecError)!void {
     const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
     const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
 
     try receiveX(
         path,
@@ -149,7 +149,7 @@ pub fn pollStationsX(
     range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
     try receiveX(
         path,
@@ -163,7 +163,7 @@ pub fn pollStationsWr(
     range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
     try receiveWr(
         path,
@@ -178,7 +178,7 @@ pub fn pollStation(
     index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
 
     try receiveX(
         path,
@@ -207,7 +207,7 @@ pub fn pollStationX(
     index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     try receiveX(
         path,
         .{ .start = index, .end = index },
@@ -220,7 +220,7 @@ pub fn pollStationWr(
     index: Index,
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     try receiveWr(
         path,
         .{ .start = index, .end = index },
@@ -234,7 +234,7 @@ pub fn station(
     channel: Channel,
     index: Index,
 ) StateError!Station.Reference {
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     return .{
         .x = &stations_list.x[index],
         .y = &stations_list.y[index],
@@ -244,22 +244,22 @@ pub fn station(
 }
 
 pub fn stationX(channel: Channel, index: Index) StateError!*Station.X {
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     return &stations_list.x[index];
 }
 
 pub fn stationY(channel: Channel, index: Index) StateError!*Station.Y {
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     return &stations_list.y[index];
 }
 
 pub fn stationWr(channel: Channel, index: Index) StateError!*Station.Wr {
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     return &stations_list.wr[index];
 }
 
 pub fn stationWw(channel: Channel, index: Index) StateError!*Station.Ww {
-    const stations_list = try channel.initializedStations();
+    var stations_list = try channel.initializedStations();
     return &stations_list.ww[index];
 }
 
