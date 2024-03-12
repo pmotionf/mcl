@@ -30,7 +30,7 @@ pub const Channel = enum(u2) {
     }
 
     /// Get path of channel, asserting that the path is opened.
-    fn openedPath(self: Channel) !i32 {
+    fn openedPath(self: Channel) StateError!i32 {
         const chan_idx: u2 = @intFromEnum(self);
         if (paths[chan_idx]) |p| {
             return p;
@@ -47,7 +47,7 @@ pub const Channel = enum(u2) {
 
     /// Get stations of channel asserting that the station list is initialized.
     /// Constant station list is returned as fields are mutable slices.
-    fn initializedStations(self: Channel) MultiArrayStation {
+    fn initializedStations(self: Channel) StateError!MultiArrayStation {
         const chan_idx: u2 = @intFromEnum(self);
         if (connection.stations[chan_idx]) |s| {
             return s;
