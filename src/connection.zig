@@ -301,16 +301,14 @@ pub fn sendStation(
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
     const stations_list = try channel.initializedStations();
-    try send(
+    try sendWw(
         path,
         .{ .start = index, .end = index },
-        .DevWw,
         std.mem.asBytes(&stations_list.ww[index]),
     );
-    try send(
+    try sendY(
         path,
         .{ .start = index, .end = index },
-        .DevY,
         std.mem.asBytes(&stations_list.y[index]),
     );
 }
@@ -321,10 +319,9 @@ pub fn sendStationY(
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
     const stations_list = try channel.initializedStations();
-    try send(
+    try sendY(
         path,
         .{ .start = index, .end = index },
-        .DevY,
         std.mem.asBytes(&stations_list.y[index]),
     );
 }
@@ -335,10 +332,9 @@ pub fn sendStationWw(
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
     const stations_list = try channel.initializedStations();
-    try send(
+    try sendWw(
         path,
         .{ .start = index, .end = index },
-        .DevWw,
         std.mem.asBytes(&stations_list.ww[index]),
     );
 }
@@ -353,16 +349,14 @@ pub fn sendStations(
     const path: i32 = try channel.openedPath();
     const stations_list = try channel.initializedStations();
 
-    try send(
+    try sendWw(
         path,
         range,
-        .DevWw,
         std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
     );
-    try send(
+    try sendY(
         path,
         range,
-        .DevY,
         std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
     );
 }
@@ -374,10 +368,9 @@ pub fn sendStationsY(
     const end_exclusive: u7 = @as(u7, range.end) + 1;
     const path: i32 = try channel.openedPath();
     const stations_list = try channel.initializedStations();
-    try send(
+    try sendY(
         path,
         range,
-        .DevY,
         std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
     );
 }
@@ -389,10 +382,9 @@ pub fn sendStationsWw(
     const end_exclusive: u7 = @as(u7, range.end) + 1;
     const path: i32 = try channel.openedPath();
     const stations_list = try channel.initializedStations();
-    try send(
+    try sendWw(
         path,
         range,
-        .DevWw,
         std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
     );
 }
@@ -473,27 +465,40 @@ fn receiveWw(
     }
 }
 
-fn send(
+fn sendY(
     path: i32,
     range: Range,
-    device: mdfunc.Device,
     source: []const u8,
 ) (ConnectionError || MelsecError)!void {
-    const devno: i32 = 16 * @as(i32, range.start);
-    const bytes_sent = try mdfunc.sendEx(path, 0, 0xFF, device, devno, source);
+    const bytes_sent = try mdfunc.sendEx(
+        path,
+        0,
+        0xFF,
+        .DevY,
+        @as(i32, range.start) * @bitSizeOf(Station.Y),
+        source,
+    );
     const range_len: usize = @as(usize, range.end - range.start) + 1;
-    switch (device) {
-        .DevY => {
-            if (bytes_sent != @sizeOf(Station.Y) * range_len) {
-                return ConnectionError.UnexpectedSendSizeY;
-            }
-        },
-        .DevWw => {
-            if (bytes_sent != @sizeOf(Station.Ww) * range_len) {
-                return ConnectionError.UnexpectedSendSizeWw;
-            }
-        },
-        // Only Wr and Y devices are valid to send.
-        else => unreachable,
+    if (bytes_sent != @sizeOf(Station.Y) * range_len) {
+        return ConnectionError.UnexpectedSendSizeY;
+    }
+}
+
+fn sendWw(
+    path: i32,
+    range: Range,
+    source: []const u8,
+) (ConnectionError || MelsecError)!void {
+    const bytes_sent = try mdfunc.sendEx(
+        path,
+        0,
+        0xFF,
+        .DevWw,
+        @as(i32, range.start) * 16,
+        source,
+    );
+    const range_len: usize = @as(usize, range.end - range.start) + 1;
+    if (bytes_sent != @sizeOf(Station.Ww) * range_len) {
+        return ConnectionError.UnexpectedSendSizeWw;
     }
 }
