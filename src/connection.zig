@@ -118,7 +118,7 @@ pub fn pollStations(
     channel: Channel,
     range: Range,
 ) (ConnectionError || StateError || MelsecError)!void {
-    const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
+    const end_exclusive: u7 = @as(u7, range.end) + 1;
     const path: i32 = try channel.openedPath();
     var stations_list = try channel.initializedStations();
 
@@ -164,7 +164,7 @@ pub fn pollStationsWr(
 ) (ConnectionError || StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
     var stations_list = try channel.initializedStations();
-    const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
+    const end_exclusive: u7 = @as(u7, range.end) + 1;
     try receiveWr(
         path,
         range,
@@ -408,13 +408,11 @@ fn receiveX(
         0,
         0xFF,
         .DevX,
-        @as(i32, @intCast(range.start)) * @bitSizeOf(Station.X),
+        @as(i32, range.start) * @bitSizeOf(Station.X),
         dest,
     );
-    if (read_bytes != @sizeOf(Station.X) * (@as(
-        usize,
-        @intCast(range.end - range.start),
-    ) + 1)) {
+    const range_len: usize = @as(usize, range.end - range.start) + 1;
+    if (read_bytes != @sizeOf(Station.X) * range_len) {
         return ConnectionError.UnexpectedReadSizeX;
     }
 }
@@ -429,13 +427,11 @@ fn receiveY(
         0,
         0xFF,
         .DevY,
-        @as(i32, @intCast(range.start)) * @bitSizeOf(Station.Y),
+        @as(i32, range.start) * @bitSizeOf(Station.Y),
         dest,
     );
-    if (read_bytes != @sizeOf(Station.Y) * (@as(
-        usize,
-        @intCast(range.end - range.start),
-    ) + 1)) {
+    const range_len: usize = @as(usize, range.end - range.start) + 1;
+    if (read_bytes != @sizeOf(Station.Y) * range_len) {
         return ConnectionError.UnexpectedReadSizeY;
     }
 }
@@ -450,13 +446,11 @@ fn receiveWr(
         0,
         0xFF,
         .DevWr,
-        @as(i32, @intCast(range.start)) * 16,
+        @as(i32, range.start) * 16,
         dest,
     );
-    if (read_bytes != @sizeOf(Station.Wr) * (@as(
-        usize,
-        @intCast(range.end - range.start),
-    ) + 1)) {
+    const range_len: usize = @as(usize, range.end - range.start) + 1;
+    if (read_bytes != @sizeOf(Station.Wr) * range_len) {
         return ConnectionError.UnexpectedReadSizeWr;
     }
 }
@@ -471,13 +465,11 @@ fn receiveWw(
         0,
         0xFF,
         .DevWw,
-        @as(i32, @intCast(range.start)) * 16,
+        @as(i32, range.start) * 16,
         dest,
     );
-    if (read_bytes != @sizeOf(Station.Ww) * (@as(
-        usize,
-        @intCast(range.end - range.start),
-    ) + 1)) {
+    const range_len: usize = @as(usize, range.end - range.start) + 1;
+    if (read_bytes != @sizeOf(Station.Ww) * range_len) {
         return ConnectionError.UnexpectedReadSizeWw;
     }
 }
@@ -490,20 +482,15 @@ fn send(
 ) (ConnectionError || MelsecError)!void {
     const devno: i32 = 16 * @as(i32, range.start);
     const bytes_sent = try mdfunc.sendEx(path, 0, 0xFF, device, devno, source);
+    const range_len: usize = @as(usize, range.end - range.start) + 1;
     switch (device) {
         .DevY => {
-            if (bytes_sent != @sizeOf(Station.Y) * (@as(
-                usize,
-                @intCast(range.start - range.end),
-            ) + 1)) {
+            if (bytes_sent != @sizeOf(Station.Y) * range_len) {
                 return ConnectionError.UnexpectedSendSizeY;
             }
         },
         .DevWw => {
-            if (bytes_sent != @sizeOf(Station.Ww) * (@as(
-                usize,
-                @intCast(range.start - range.end),
-            ) + 1)) {
+            if (bytes_sent != @sizeOf(Station.Ww) * range_len) {
                 return ConnectionError.UnexpectedSendSizeWw;
             }
         },
