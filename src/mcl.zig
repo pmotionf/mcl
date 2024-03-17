@@ -194,6 +194,28 @@ pub const Line = struct {
             try range.sendWw();
         }
     }
+
+    /// Return the first station and local axis index found that holds the
+    /// provided slider ID.
+    pub fn search(line: Line, slider_id: i16) !?struct { u8, u2 } {
+        var station_index: u8 = 0;
+        for (line.ranges) |range| {
+            const end: usize = @as(usize, range.indices.end) + 1;
+            for (range.indices.start..end) |_i| {
+                const i: connection.Station.Index = @intCast(_i);
+                const wr = try connection.stationWr(range.channel, i);
+                for (0..3) |_j| {
+                    const j: u2 = @intCast(_j);
+                    if (wr.sliderNumber(j) == slider_id) {
+                        return .{ station_index, j };
+                    }
+                }
+                station_index += 1;
+            }
+        } else {
+            return null;
+        }
+    }
 };
 
 // Buffer that can store maximum ranges (one range per station).
