@@ -268,8 +268,6 @@ pub fn init(system_lines: []const Line) !void {
                 );
 
                 total_stations += @intCast(end - start);
-                // Extra addition necessary because end is inclusive.
-                total_stations += 1;
             }
             // Minimum number of axes is 3 axes per each station, with one axis
             // at the last station.
@@ -285,6 +283,7 @@ pub fn init(system_lines: []const Line) !void {
     // Copy lines to local buffers.
     var ranges_offset: usize = 0;
     @memcpy(all_lines[0..system_lines.len], system_lines);
+    lines = all_lines[0..system_lines.len];
     for (system_lines, 0..) |line, line_counter| {
         const ranges_end: usize = ranges_offset + line.ranges.len;
         @memcpy(
