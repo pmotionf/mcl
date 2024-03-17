@@ -227,7 +227,7 @@ pub const Line = struct {
 };
 
 // Buffer that can store maximum ranges (one range per station).
-var all_ranges: [64 * 4]Line.Range = undefined;
+var all_ranges: [64 * 4]Station.Range = undefined;
 // Buffer that can store maximum lines (one line per station).
 var all_lines: [64 * 4]Line = undefined;
 
