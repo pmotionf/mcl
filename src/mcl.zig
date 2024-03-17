@@ -103,6 +103,14 @@ pub const Line = struct {
     /// Ranges that make up line, in order from back to front.
     ranges: []Station.Range,
 
+    pub fn numStations(line: Line) u9 {
+        var stations: u9 = 0;
+        for (line.ranges) |range| {
+            stations += @intCast(range.indices.end - range.indices.start);
+            stations += 1;
+        }
+    }
+
     pub fn connect(line: Line) !void {
         for (line.ranges) |range| {
             connection.openChannel(range.channel) catch |e| {
