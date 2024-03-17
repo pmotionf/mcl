@@ -109,6 +109,7 @@ pub const Line = struct {
             stations += @intCast(range.indices.end - range.indices.start);
             stations += 1;
         }
+        return stations;
     }
 
     pub fn connect(line: Line) !void {
