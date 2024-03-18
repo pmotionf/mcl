@@ -266,32 +266,24 @@ pub fn setStationY(
     channel: Channel,
     index: Index,
     /// Bitwise offset of desired field (0..).
-    y_offset: u6,
+    offset: u6,
 ) (StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    try mdfunc.devSetEx(
-        path,
-        0,
-        0xFF,
-        .DevY,
-        @as(i32, index) * @bitSizeOf(Station.Y) + @as(i32, y_offset),
-    );
+    const devno: i32 = @as(i32, index) * @bitSizeOf(Station.Y) +
+        @as(i32, offset);
+    try mdfunc.devSetEx(path, 0, 0xFF, .DevY, devno);
 }
 
 pub fn resetStationY(
     channel: Channel,
-    station_index: u6,
+    index: Index,
     /// Bitwise offset of desired field (0..).
-    y_offset: u6,
+    offset: u6,
 ) (StateError || MelsecError)!void {
     const path: i32 = try channel.openedPath();
-    try mdfunc.devRstEx(
-        path,
-        0,
-        0xFF,
-        .DevY,
-        @as(i32, station_index) * @bitSizeOf(Station.Y) + @as(i32, y_offset),
-    );
+    const devno: i32 = @as(i32, index) * @bitSizeOf(Station.Y) +
+        @as(i32, offset);
+    try mdfunc.devRstEx(path, 0, 0xFF, .DevY, devno);
 }
 
 /// Send station's local Ww and Y registers, in that order, to motion system.
