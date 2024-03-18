@@ -11,8 +11,10 @@ pub const connection = @import("connection.zig");
 
 pub var lines: []const Line = undefined;
 
+const StationIndex = connection.Station.Index;
+
 pub const Station = struct {
-    index: connection.Station.Index,
+    index: StationIndex,
     channel: connection.Channel,
 
     pub const Range = struct {
@@ -76,12 +78,12 @@ pub const Station = struct {
         return try connection.stationWw(station.channel, station.index);
     }
 
-    pub fn setY(station: Station, y_offset: u6) !void {
-        try connection.setStationY(station.channel, station.index, y_offset);
+    pub fn setY(station: Station, offset: u6) !void {
+        try connection.setStationY(station.channel, station.index, offset);
     }
 
-    pub fn resetY(station: Station, y_offset: u6) !void {
-        try connection.resetStationY(station.channel, station.index, y_offset);
+    pub fn resetY(station: Station, offset: u6) !void {
+        try connection.resetStationY(station.channel, station.index, offset);
     }
 
     pub fn send(station: Station) !void {
@@ -102,6 +104,13 @@ pub const Line = struct {
     axes: u10,
     /// Ranges that make up line, in order from back to front.
     ranges: []Station.Range,
+
+    pub const Index = u8;
+    /// Inclusive index range of stations in line.
+    pub const IndexRange = struct {
+        start: Index,
+        end: Index,
+    };
 
     pub fn numStations(line: Line) u9 {
         var stations: u9 = 0;
@@ -151,15 +160,14 @@ pub const Line = struct {
         }
     }
 
-    pub fn station(line: Line, index: u8) !Station {
-        var station_counter: u8 = index;
+    pub fn station(line: Line, index: Line.Index) !Station {
+        var station_counter: Line.Index = index;
         for (line.ranges) |range| {
-            const range_len: u8 =
-                @as(u8, range.indices.end - range.indices.start) + 1;
+            const range_len: Line.Index =
+                @as(Line.Index, range.indices.end - range.indices.start) + 1;
             if (station_counter < range_len) {
-                // Station index relative to channel.
-                const idx: u6 =
-                    range.indices.start + @as(u6, @intCast(station_counter));
+                const idx: StationIndex = range.indices.start +
+                    @as(StationIndex, @intCast(station_counter));
                 return .{ .index = idx, .channel = range.channel };
             }
             station_counter -= range_len;
@@ -206,12 +214,12 @@ pub const Line = struct {
 
     /// Return the first station and local axis index found that holds the
     /// provided slider ID.
-    pub fn search(line: Line, slider_id: i16) !?struct { u8, u2 } {
-        var station_index: u8 = 0;
+    pub fn search(line: Line, slider_id: i16) !?struct { Line.Index, u2 } {
+        var station_index: Line.Index = 0;
         for (line.ranges) |range| {
             const end: usize = @as(usize, range.indices.end) + 1;
             for (range.indices.start..end) |_i| {
-                const i: connection.Station.Index = @intCast(_i);
+                const i: StationIndex = @intCast(_i);
                 const wr = try connection.stationWr(range.channel, i);
                 for (0..3) |_j| {
                     const j: u2 = @intCast(_j);
@@ -239,7 +247,8 @@ pub fn init(system_lines: []const Line) !void {
 
     // Lines validation before overwriting potential pre-existing lines.
     {
-        var used_stations: [4][64]bool = [_][64]bool{[_]bool{false} ** 64} ** 4;
+        var used_stations: [4][64]bool =
+            [_][64]bool{[_]bool{false} ** 64} ** 4;
         for (system_lines) |line| {
             if (line.ranges.len < 1 or line.ranges.len > 64 * 4) {
                 return error.InvalidLineStationRanges;
