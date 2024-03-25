@@ -11,6 +11,8 @@ pub const connection = @import("connection.zig");
 
 pub var lines: []const Line = undefined;
 
+pub const Direction = connection.Station.Direction;
+
 const StationIndex = connection.Station.Index;
 
 pub const Station = struct {
@@ -26,7 +28,27 @@ pub const Station = struct {
         start: Line.Index,
         end: Line.Index,
         line: *const Line,
+
+        pub fn len(range: Range) usize {
+            return @as(usize, range.end - range.start) + 1;
+        }
     };
+
+    pub fn prev(station: Station) ?Station {
+        if (station.index > 0) {
+            return station.line.station(station.index - 1) catch {
+                unreachable;
+            };
+        } else return null;
+    }
+
+    pub fn next(station: Station) ?Station {
+        if (station.index < station.line.numStations() - 1) {
+            return station.line.station(station.index + 1) catch {
+                unreachable;
+            };
+        } else return null;
+    }
 };
 
 pub const Line = struct {
@@ -43,12 +65,11 @@ pub const Line = struct {
     };
 
     pub fn numStations(line: Line) u9 {
-        var stations: u9 = 0;
+        var stations: usize = 0;
         for (line.ranges) |range| {
-            stations += @intCast(range.end - range.start);
-            stations += 1;
+            stations += range.len();
         }
-        return stations;
+        return @intCast(stations);
     }
 
     pub fn connect(line: Line) !void {
@@ -109,6 +130,10 @@ pub const Line = struct {
         } else {
             return error.IndexOutOfRange;
         }
+    }
+
+    pub fn axisStation(line: *const Line, axis: u10) !Station {
+        line.station(@intCast(@divTrunc(axis, 3)));
     }
 
     pub fn poll(line: Line) !void {
@@ -256,4 +281,55 @@ pub fn init(system_lines: []const Line) !void {
 
         ranges_offset += line.ranges.len;
     }
+}
+
+/// Stop traffic transmission between drivers when a slider is between two
+/// stations and must move in a direction. If traffic transmission is stopped,
+/// the station and direction from which transmission was stopped is returned
+/// as a tuple.
+pub fn stopTrafficTransmission(
+    back: Station,
+    front: Station,
+    dir: Direction,
+) !?struct { Station, Direction } {
+    const back_ref = try back.connection.reference();
+    const front_ref = try back.connection.reference();
+
+    const back_slider = back_ref.wr.slider_number.axis3;
+    const front_slider = front_ref.wr.slider_number.axis1;
+
+    const back_state = back_ref.wr.slider_state.axis3;
+    const front_state = front_ref.wr.slider_state.axis1;
+
+    if (back_slider != front_slider) return null;
+
+    if (dir == .backward) {
+        if (back_state == .NextAxisAuxiliary or
+            back_state == .NextAxisCompleted or back_state == .None)
+        {
+            try front.connection.setY(0x9);
+            return .{ front, .backward };
+        } else if (front_state == .PrevAxisAuxiliary or
+            front_state == .PrevAxisCompleted or front_state == .None)
+        {
+            try back.connection.setY(0xA);
+            return .{ back, .forward };
+        }
+    }
+    // dir == .forward
+    else {
+        if ((front_state == .PrevAxisAuxiliary or
+            front_state == .PrevAxisCompleted) and back.index > 0)
+        {
+            const prev_station = back.prev().?;
+            try prev_station.connection.setY(0xA);
+            return .{ prev_station, .forward };
+        } else if (back_state == .NextAxisAuxiliary or
+            back_state == .NextAxisCompleted)
+        {
+            try back.connection.setY(0x9);
+            return .{ back, .backward };
+        }
+    }
+    return null;
 }

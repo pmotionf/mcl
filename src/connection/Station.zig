@@ -3,6 +3,10 @@
 const std = @import("std");
 
 pub const Index = u6;
+pub const Direction = enum(u1) {
+    backward = 0,
+    forward = 1,
+};
 
 /// Inclusive index range of stations.
 pub const IndexRange = struct {
@@ -167,6 +171,13 @@ pub const X = packed struct(u64) {
         };
     }
 
+    pub fn transmissionStopped(self: X, dir: Direction) bool {
+        return switch (dir) {
+            .backward => self.transmission_stopped.from_prev,
+            .forward => self.transmission_stopped.from_next,
+        };
+    }
+
     pub fn overcurrentDetected(self: X, axis_index: u2) bool {
         return switch (axis_index) {
             0 => self.overcurrent_detected.axis1,
@@ -326,12 +337,25 @@ pub const Wr = packed struct(u256) {
     pub const CommandResponseCode = enum(i16) {
         NoError = 0,
         InvalidCommand = 1,
-        SliderIdNotFound = 2,
+        SliderNotFound = 2,
         HomingFailed = 3,
         InvalidParameter = 4,
         InvalidSystemState = 5,
         SliderAlreadyExists = 6,
-        InvalidAxisNumber = 7,
+        InvalidAxis = 7,
+
+        pub fn throwError(code: CommandResponseCode) !void {
+            return switch (code) {
+                .NoError => {},
+                .InvalidCommand => return error.InvalidCommand,
+                .SliderNotFound => return error.SliderNotFound,
+                .HomingFailed => return error.HomingFailed,
+                .InvalidParameter => return error.InvalidParameter,
+                .InvalidSystemState => return error.InvalidSystemState,
+                .SliderAlreadyExists => return error.SliderAlreadyExists,
+                .InvalidAxis => return error.InvalidAxis,
+            };
+        }
     };
 
     pub const SliderStateCode = enum(i16) {
