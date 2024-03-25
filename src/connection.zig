@@ -307,7 +307,12 @@ pub const Channel = enum(u2) {
 
     pub fn open(channel: Channel) MelsecError!void {
         const index: u2 = @intFromEnum(channel);
-        paths[index] = try mdfunc.open(channel.toMdfunc());
+        if (mdfunc.open(channel.toMdfunc())) |p| {
+            paths[index] = p;
+        } else |err| switch (err) {
+            connection.MelsecError.@"66: Channel-opened error" => {},
+            else => |e| return e,
+        }
         connection.stations[index] = .{};
     }
 

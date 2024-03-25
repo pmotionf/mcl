@@ -74,14 +74,7 @@ pub const Line = struct {
 
     pub fn connect(line: Line) !void {
         for (line.ranges) |range| {
-            range.connection.channel.open() catch |e| {
-                switch (e) {
-                    connection.MelsecError.@"66: Channel-opened error" => {},
-                    else => {
-                        return e;
-                    },
-                }
-            };
+            try range.connection.channel.open();
             for (0..range.connection.len()) |i| {
                 const index = try range.connection.index(i);
                 const y = try index.Y();
