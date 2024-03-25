@@ -5,8 +5,6 @@ const std = @import("std");
 const mdfunc = @import("mdfunc");
 
 pub const Station = @import("connection/Station.zig");
-const Index = Station.Index;
-const Range = Station.IndexRange;
 
 // Restricts available channels for connection to 4 CC-Link slots.
 pub const Channel = enum(u2) {
@@ -15,6 +13,289 @@ pub const Channel = enum(u2) {
     cc_link_3slot = 2,
     cc_link_4slot = 3,
 
+    pub const Index = struct {
+        index: Station.Index,
+        channel: Channel,
+
+        /// Poll and update station from channel.
+        pub fn poll(
+            index: Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            var stations_list = try index.channel.initializedStations();
+
+            try receiveX(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.x[index.index]),
+            );
+            try receiveWr(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.wr[index.index]),
+            );
+            try receiveY(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.y[index.index]),
+            );
+            try receiveWw(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.ww[index.index]),
+            );
+        }
+
+        pub fn pollX(
+            index: Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            var stations_list = try index.channel.initializedStations();
+            try receiveX(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.x[index.index]),
+            );
+        }
+
+        pub fn pollWr(
+            index: Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            var stations_list = try index.channel.initializedStations();
+            try receiveWr(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.wr[index.index]),
+            );
+        }
+
+        /// Get mutable reference to station state. Station state must be
+        /// updated with polls, and synchronizes to motion system when sent.
+        pub fn reference(index: Channel.Index) StateError!Station.Reference {
+            var stations_list = try index.channel.initializedStations();
+            return .{
+                .x = &stations_list.x[index.index],
+                .y = &stations_list.y[index.index],
+                .wr = &stations_list.wr[index.index],
+                .ww = &stations_list.ww[index.index],
+            };
+        }
+
+        pub fn X(index: Index) StateError!*Station.X {
+            var stations_list = try index.channel.initializedStations();
+            return &stations_list.x[index.index];
+        }
+
+        pub fn Y(index: Index) StateError!*Station.Y {
+            var stations_list = try index.channel.initializedStations();
+            return &stations_list.y[index.index];
+        }
+
+        pub fn Wr(index: Index) StateError!*Station.Wr {
+            var stations_list = try index.channel.initializedStations();
+            return &stations_list.wr[index.index];
+        }
+
+        pub fn Ww(index: Index) StateError!*Station.Ww {
+            var stations_list = try index.channel.initializedStations();
+            return &stations_list.ww[index.index];
+        }
+
+        pub fn setY(
+            index: Index,
+            /// Bitwise offset of desired field (0..).
+            offset: u6,
+        ) (StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            const devno: i32 = @as(i32, index.index) * @bitSizeOf(Station.Y) +
+                @as(i32, offset);
+            try mdfunc.devSetEx(p, 0, 0xFF, .DevY, devno);
+        }
+
+        pub fn resetY(
+            index: Index,
+            /// Bitwise offset of desired field (0..).
+            offset: u6,
+        ) (StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            const devno: i32 = @as(i32, index.index) * @bitSizeOf(Station.Y) +
+                @as(i32, offset);
+            try mdfunc.devRstEx(p, 0, 0xFF, .DevY, devno);
+        }
+
+        /// Send station's local Ww and Y registers to motion system.
+        pub fn send(
+            index: Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            const stations_list = try index.channel.initializedStations();
+            try connection.sendWw(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.ww[index.index]),
+            );
+            try connection.sendY(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.y[index.index]),
+            );
+        }
+
+        pub fn sendY(
+            index: Channel.Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            const stations_list = try index.channel.initializedStations();
+            try connection.sendY(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.y[index.index]),
+            );
+        }
+
+        pub fn sendWw(
+            index: Channel.Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            const stations_list = try index.channel.initializedStations();
+            try connection.sendWw(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.ww[index.index]),
+            );
+        }
+    };
+
+    pub const Range = struct {
+        indices: Station.IndexRange,
+        channel: Channel,
+
+        pub fn len(range: Range) usize {
+            return @as(usize, range.indices.end - range.indices.start) + 1;
+        }
+
+        pub fn index(range: Range, i: usize) !Index {
+            if (i >= range.len()) return error.IndexOutOfRange;
+            const offset: Station.Index = @intCast(i);
+            return .{
+                .index = range.indices.start + offset,
+                .channel = range.channel,
+            };
+        }
+
+        /// Poll and update station inclusive range from channel.
+        pub fn poll(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const end_exclusive: u7 = @as(u7, range.indices.end) + 1;
+            const p: i32 = try range.channel.openedPath();
+            var stations_list = try range.channel.initializedStations();
+            const start: Station.Index = range.indices.start;
+
+            try receiveX(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.x[start..end_exclusive]),
+            );
+            try receiveWr(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.wr[start..end_exclusive]),
+            );
+            try receiveY(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.y[start..end_exclusive]),
+            );
+            try receiveWw(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.ww[start..end_exclusive]),
+            );
+        }
+
+        pub fn pollX(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try range.channel.openedPath();
+            var stations_list = try range.channel.initializedStations();
+            const end_exclusive: u7 = @as(u7, @intCast(range.indices.end)) + 1;
+            const start = range.indices.start;
+            try receiveX(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.x[start..end_exclusive]),
+            );
+        }
+
+        pub fn pollWr(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try range.channel.openedPath();
+            var stations_list = try range.channel.initializedStations();
+            const end_exclusive: u7 = @as(u7, range.indices.end) + 1;
+            const start = range.indices.start;
+            try receiveWr(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.wr[start..end_exclusive]),
+            );
+        }
+
+        /// Send channel's station inclusive range of local Ww and Y registers
+        /// to motion system.
+        pub fn send(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const end_exclusive: u7 = @as(u7, range.indices.end) + 1;
+            const p: i32 = try range.channel.openedPath();
+            const stations_list = try range.channel.initializedStations();
+            const start = range.indices.start;
+
+            try connection.sendWw(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.ww[start..end_exclusive]),
+            );
+            try connection.sendY(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.y[start..end_exclusive]),
+            );
+        }
+
+        pub fn sendY(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const end_exclusive: u7 = @as(u7, range.indices.end) + 1;
+            const p: i32 = try range.channel.openedPath();
+            const stations_list = try range.channel.initializedStations();
+            const start = range.indices.start;
+
+            try connection.sendY(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.y[start..end_exclusive]),
+            );
+        }
+
+        pub fn sendWw(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const end_exclusive: u7 = @as(u7, range.indices.end) + 1;
+            const p: i32 = try range.channel.openedPath();
+            const stations_list = try range.channel.initializedStations();
+            const start = range.indices.start;
+
+            try connection.sendWw(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.ww[start..end_exclusive]),
+            );
+        }
+    };
+
     pub fn toMdfunc(self: Channel) mdfunc.Channel {
         return switch (self) {
             .cc_link_1slot => mdfunc.Channel.@"CC-Link (1 slot)",
@@ -22,6 +303,23 @@ pub const Channel = enum(u2) {
             .cc_link_3slot => mdfunc.Channel.@"CC-Link (3 slot)",
             .cc_link_4slot => mdfunc.Channel.@"CC-Link (4 slot)",
         };
+    }
+
+    pub fn open(channel: Channel) MelsecError!void {
+        const index: u2 = @intFromEnum(channel);
+        paths[index] = try mdfunc.open(channel.toMdfunc());
+        connection.stations[index] = .{};
+    }
+
+    pub fn close(channel: Channel) (StateError || MelsecError)!void {
+        const index: u2 = @intFromEnum(channel);
+        if (paths[index]) |p| {
+            try mdfunc.close(p);
+            paths[index] = null;
+            connection.stations[index] = null;
+        } else {
+            return StateError.ChannelUnopened;
+        }
     }
 
     /// Get path of channel.
@@ -95,295 +393,9 @@ pub const StateError = error{
     ChannelStationsUninitialized,
 };
 
-pub fn openChannel(channel: Channel) MelsecError!void {
-    const index: u2 = @intFromEnum(channel);
-    paths[index] = try mdfunc.open(channel.toMdfunc());
-    stations[index] = .{};
-}
-
-pub fn closeChannel(channel: Channel) (StateError || MelsecError)!void {
-    const index: u2 = @intFromEnum(channel);
-    if (paths[index]) |path| {
-        try mdfunc.close(path);
-        paths[index] = null;
-        stations[index] = null;
-    } else {
-        return StateError.ChannelUnopened;
-    }
-}
-
-/// Poll and update station inclusive range from channel.
-pub fn pollStations(
-    channel: Channel,
-    range: Range,
-) (ConnectionError || StateError || MelsecError)!void {
-    const end_exclusive: u7 = @as(u7, range.end) + 1;
-    const path: i32 = try channel.openedPath();
-    var stations_list = try channel.initializedStations();
-
-    try receiveX(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.x[range.start..end_exclusive]),
-    );
-    try receiveWr(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.wr[range.start..end_exclusive]),
-    );
-    try receiveY(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
-    );
-    try receiveWw(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
-    );
-}
-
-pub fn pollStationsX(
-    channel: Channel,
-    range: Range,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    var stations_list = try channel.initializedStations();
-    const end_exclusive: u7 = @as(u7, @intCast(range.end)) + 1;
-    try receiveX(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.x[range.start..end_exclusive]),
-    );
-}
-
-pub fn pollStationsWr(
-    channel: Channel,
-    range: Range,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    var stations_list = try channel.initializedStations();
-    const end_exclusive: u7 = @as(u7, range.end) + 1;
-    try receiveWr(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.wr[range.start..end_exclusive]),
-    );
-}
-
-/// Poll and update station from channel.
-pub fn pollStation(
-    channel: Channel,
-    index: Index,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    var stations_list = try channel.initializedStations();
-
-    try receiveX(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.x[index]),
-    );
-    try receiveWr(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.wr[index]),
-    );
-    try receiveY(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.y[index]),
-    );
-    try receiveWw(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.ww[index]),
-    );
-}
-
-pub fn pollStationX(
-    channel: Channel,
-    index: Index,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    var stations_list = try channel.initializedStations();
-    try receiveX(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.x[index]),
-    );
-}
-
-pub fn pollStationWr(
-    channel: Channel,
-    index: Index,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    var stations_list = try channel.initializedStations();
-    try receiveWr(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.wr[index]),
-    );
-}
-
-/// Get mutable reference to station state. Station state must be updated with
-/// polls, and will only synchronize to motion system if sent.
-pub fn station(
-    channel: Channel,
-    index: Index,
-) StateError!Station.Reference {
-    var stations_list = try channel.initializedStations();
-    return .{
-        .x = &stations_list.x[index],
-        .y = &stations_list.y[index],
-        .wr = &stations_list.wr[index],
-        .ww = &stations_list.ww[index],
-    };
-}
-
-pub fn stationX(channel: Channel, index: Index) StateError!*Station.X {
-    var stations_list = try channel.initializedStations();
-    return &stations_list.x[index];
-}
-
-pub fn stationY(channel: Channel, index: Index) StateError!*Station.Y {
-    var stations_list = try channel.initializedStations();
-    return &stations_list.y[index];
-}
-
-pub fn stationWr(channel: Channel, index: Index) StateError!*Station.Wr {
-    var stations_list = try channel.initializedStations();
-    return &stations_list.wr[index];
-}
-
-pub fn stationWw(channel: Channel, index: Index) StateError!*Station.Ww {
-    var stations_list = try channel.initializedStations();
-    return &stations_list.ww[index];
-}
-
-pub fn setStationY(
-    channel: Channel,
-    index: Index,
-    /// Bitwise offset of desired field (0..).
-    offset: u6,
-) (StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    const devno: i32 = @as(i32, index) * @bitSizeOf(Station.Y) +
-        @as(i32, offset);
-    try mdfunc.devSetEx(path, 0, 0xFF, .DevY, devno);
-}
-
-pub fn resetStationY(
-    channel: Channel,
-    index: Index,
-    /// Bitwise offset of desired field (0..).
-    offset: u6,
-) (StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    const devno: i32 = @as(i32, index) * @bitSizeOf(Station.Y) +
-        @as(i32, offset);
-    try mdfunc.devRstEx(path, 0, 0xFF, .DevY, devno);
-}
-
-/// Send station's local Ww and Y registers, in that order, to motion system.
-pub fn sendStation(
-    channel: Channel,
-    index: Index,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
-    try sendWw(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.ww[index]),
-    );
-    try sendY(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.y[index]),
-    );
-}
-
-pub fn sendStationY(
-    channel: Channel,
-    index: Index,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
-    try sendY(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.y[index]),
-    );
-}
-
-pub fn sendStationWw(
-    channel: Channel,
-    index: Index,
-) (ConnectionError || StateError || MelsecError)!void {
-    const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
-    try sendWw(
-        path,
-        .{ .start = index, .end = index },
-        std.mem.asBytes(&stations_list.ww[index]),
-    );
-}
-
-/// Send channel's station inclusive range of local Ww and Y registers, in that
-/// order, to motion system.
-pub fn sendStations(
-    channel: Channel,
-    range: Range,
-) (ConnectionError || StateError || MelsecError)!void {
-    const end_exclusive: u7 = @as(u7, range.end) + 1;
-    const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
-
-    try sendWw(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
-    );
-    try sendY(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
-    );
-}
-
-pub fn sendStationsY(
-    channel: Channel,
-    range: Range,
-) (ConnectionError || StateError || MelsecError)!void {
-    const end_exclusive: u7 = @as(u7, range.end) + 1;
-    const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
-    try sendY(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.y[range.start..end_exclusive]),
-    );
-}
-
-pub fn sendStationsWw(
-    channel: Channel,
-    range: Range,
-) (ConnectionError || StateError || MelsecError)!void {
-    const end_exclusive: u7 = @as(u7, range.end) + 1;
-    const path: i32 = try channel.openedPath();
-    const stations_list = try channel.initializedStations();
-    try sendWw(
-        path,
-        range,
-        std.mem.sliceAsBytes(stations_list.ww[range.start..end_exclusive]),
-    );
-}
-
 fn receiveX(
     path: i32,
-    range: Range,
+    range: Station.IndexRange,
     dest: []u8,
 ) (ConnectionError || MelsecError)!void {
     const read_bytes = try mdfunc.receiveEx(
@@ -402,7 +414,7 @@ fn receiveX(
 
 fn receiveY(
     path: i32,
-    range: Range,
+    range: Station.IndexRange,
     dest: []u8,
 ) (ConnectionError || MelsecError)!void {
     const read_bytes = try mdfunc.receiveEx(
@@ -421,7 +433,7 @@ fn receiveY(
 
 fn receiveWr(
     path: i32,
-    range: Range,
+    range: Station.IndexRange,
     dest: []u8,
 ) (ConnectionError || MelsecError)!void {
     const read_bytes = try mdfunc.receiveEx(
@@ -440,7 +452,7 @@ fn receiveWr(
 
 fn receiveWw(
     path: i32,
-    range: Range,
+    range: Station.IndexRange,
     dest: []u8,
 ) (ConnectionError || MelsecError)!void {
     const read_bytes = try mdfunc.receiveEx(
@@ -459,7 +471,7 @@ fn receiveWw(
 
 fn sendY(
     path: i32,
-    range: Range,
+    range: Station.IndexRange,
     source: []const u8,
 ) (ConnectionError || MelsecError)!void {
     const bytes_sent = try mdfunc.sendEx(
@@ -478,7 +490,7 @@ fn sendY(
 
 fn sendWw(
     path: i32,
-    range: Range,
+    range: Station.IndexRange,
     source: []const u8,
 ) (ConnectionError || MelsecError)!void {
     const bytes_sent = try mdfunc.sendEx(

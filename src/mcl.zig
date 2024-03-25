@@ -14,89 +14,19 @@ pub var lines: []const Line = undefined;
 const StationIndex = connection.Station.Index;
 
 pub const Station = struct {
-    index: StationIndex,
-    channel: connection.Channel,
+    connection: connection.Channel.Index,
+    line: *const Line,
+    /// Index within configured line, spanning across connection ranges.
+    index: Line.Index = undefined,
 
+    /// Inclusive range of stations in line. Each range only spans within one
+    /// CC-Link connection channel.
     pub const Range = struct {
-        indices: connection.Station.IndexRange,
-        channel: connection.Channel,
-
-        pub fn poll(range: Range) !void {
-            try connection.pollStations(range.channel, range.indices);
-        }
-
-        pub fn pollX(range: Range) !void {
-            try connection.pollStationsX(range.channel, range.indices);
-        }
-
-        pub fn pollWr(range: Range) !void {
-            try connection.pollStationsWr(range.channel, range.indices);
-        }
-
-        pub fn send(range: Range) !void {
-            try connection.sendStations(range.channel, range.indices);
-        }
-
-        pub fn sendY(range: Range) !void {
-            try connection.sendStation(range.channel, range.indices);
-        }
-
-        pub fn sendWw(range: Range) !void {
-            try connection.sendStation(range.channel, range.indices);
-        }
+        connection: connection.Channel.Range,
+        start: Line.Index,
+        end: Line.Index,
+        line: *const Line,
     };
-
-    pub fn poll(station: Station) !void {
-        try connection.pollStation(station.channel, station.index);
-    }
-
-    pub fn pollX(station: Station) !void {
-        try connection.pollStationX(station.channel, station.index);
-    }
-
-    pub fn pollWr(station: Station) !void {
-        try connection.pollStationWr(station.channel, station.index);
-    }
-
-    pub fn reference(station: Station) !connection.Station.Reference {
-        return try connection.station(station.channel, station.index);
-    }
-
-    pub fn X(station: Station) !*connection.Station.X {
-        return try connection.stationX(station.channel, station.index);
-    }
-
-    pub fn Y(station: Station) !*connection.Station.Y {
-        return try connection.stationY(station.channel, station.index);
-    }
-
-    pub fn Wr(station: Station) !*connection.Station.Wr {
-        return try connection.stationWr(station.channel, station.index);
-    }
-
-    pub fn Ww(station: Station) !*connection.Station.Ww {
-        return try connection.stationWw(station.channel, station.index);
-    }
-
-    pub fn setY(station: Station, offset: u6) !void {
-        try connection.setStationY(station.channel, station.index, offset);
-    }
-
-    pub fn resetY(station: Station, offset: u6) !void {
-        try connection.resetStationY(station.channel, station.index, offset);
-    }
-
-    pub fn send(station: Station) !void {
-        try connection.sendStation(station.channel, station.index);
-    }
-
-    pub fn sendY(station: Station) !void {
-        try connection.sendStationY(station.channel, station.index);
-    }
-
-    pub fn sendWw(station: Station) !void {
-        try connection.sendStationWw(station.channel, station.index);
-    }
 };
 
 pub const Line = struct {
@@ -115,7 +45,7 @@ pub const Line = struct {
     pub fn numStations(line: Line) u9 {
         var stations: u9 = 0;
         for (line.ranges) |range| {
-            stations += @intCast(range.indices.end - range.indices.start);
+            stations += @intCast(range.end - range.start);
             stations += 1;
         }
         return stations;
@@ -123,7 +53,7 @@ pub const Line = struct {
 
     pub fn connect(line: Line) !void {
         for (line.ranges) |range| {
-            connection.openChannel(range.channel) catch |e| {
+            range.connection.channel.open() catch |e| {
                 switch (e) {
                     connection.MelsecError.@"66: Channel-opened error" => {},
                     else => {
@@ -131,44 +61,49 @@ pub const Line = struct {
                     },
                 }
             };
-            const end: usize = @as(usize, range.indices.end) + 1;
-            for (range.indices.start..end) |_i| {
-                const i: connection.Station.Index = @intCast(_i);
-                const y = try connection.stationY(range.channel, i);
+            for (0..range.connection.len()) |i| {
+                const index = try range.connection.index(i);
+                const y = try index.Y();
                 y.*.cc_link_enable = true;
             }
-            try connection.sendStationsY(range.channel, range.indices);
+            try range.connection.sendY();
         }
     }
 
     pub fn disconnect(line: Line) !void {
         var used_channels: [4]bool = .{ false, false, false, false };
         for (line.ranges) |range| {
-            const end: usize = @as(usize, range.indices.end) + 1;
-            for (range.indices.start..end) |_i| {
-                const i: connection.Station.Index = @intCast(_i);
-                const y = try connection.stationY(range.channel, i);
+            for (0..range.connection.len()) |i| {
+                const index = try range.connection.index(i);
+                const y = try index.Y();
                 y.*.cc_link_enable = false;
             }
-            try connection.sendStationsY(range.channel, range.indices);
-            used_channels[@intFromEnum(range.channel)] = true;
+            try range.connection.sendY();
+            used_channels[@intFromEnum(range.connection.channel)] = true;
         }
         for (used_channels, 0..) |used, i| {
             if (used) {
-                try connection.closeChannel(@enumFromInt(i));
+                const chan: connection.Channel = @enumFromInt(i);
+                try chan.close();
             }
         }
     }
 
-    pub fn station(line: Line, index: Line.Index) !Station {
+    pub fn station(line: *const Line, index: Line.Index) !Station {
         var station_counter: Line.Index = index;
         for (line.ranges) |range| {
-            const range_len: Line.Index =
-                @as(Line.Index, range.indices.end - range.indices.start) + 1;
+            const range_len: Line.Index = @intCast(range.connection.len());
             if (station_counter < range_len) {
-                const idx: StationIndex = range.indices.start +
+                const idx: StationIndex = range.connection.indices.start +
                     @as(StationIndex, @intCast(station_counter));
-                return .{ .index = idx, .channel = range.channel };
+                return .{
+                    .connection = .{
+                        .index = idx,
+                        .channel = range.connection.channel,
+                    },
+                    .index = index,
+                    .line = line,
+                };
             }
             station_counter -= range_len;
         } else {
@@ -178,56 +113,59 @@ pub const Line = struct {
 
     pub fn poll(line: Line) !void {
         for (line.ranges) |range| {
-            try range.poll();
+            try range.connection.poll();
         }
     }
 
     pub fn pollX(line: Line) !void {
         for (line.ranges) |range| {
-            try range.pollX();
+            try range.connection.pollX();
         }
     }
 
     pub fn pollWr(line: Line) !void {
         for (line.ranges) |range| {
-            try range.pollWr();
+            try range.connection.pollWr();
         }
     }
 
     pub fn send(line: Line) !void {
         for (line.ranges) |range| {
-            try range.send();
+            try range.connection.send();
         }
     }
 
     pub fn sendY(line: Line) !void {
         for (line.ranges) |range| {
-            try range.sendY();
+            try range.connection.sendY();
         }
     }
 
     pub fn sendWw(line: Line) !void {
         for (line.ranges) |range| {
-            try range.sendWw();
+            try range.connection.sendWw();
         }
     }
 
     /// Return the first station and local axis index found that holds the
     /// provided slider ID.
-    pub fn search(line: Line, slider_id: i16) !?struct { Line.Index, u2 } {
-        var station_index: Line.Index = 0;
+    pub fn search(line: *const Line, slider_id: i16) !?struct { Station, u2 } {
+        var line_index: Line.Index = 0;
         for (line.ranges) |range| {
-            const end: usize = @as(usize, range.indices.end) + 1;
-            for (range.indices.start..end) |_i| {
-                const i: StationIndex = @intCast(_i);
-                const wr = try connection.stationWr(range.channel, i);
+            for (0..range.connection.len()) |i| {
+                const index = try range.connection.index(i);
+                const wr = try index.Wr();
                 for (0..3) |_j| {
                     const j: u2 = @intCast(_j);
                     if (wr.sliderNumber(j) == slider_id) {
-                        return .{ station_index, j };
+                        return .{ .{
+                            .connection = index,
+                            .index = line_index,
+                            .line = line,
+                        }, j };
                     }
                 }
-                station_index += 1;
+                line_index += 1;
             }
         } else {
             return null;
@@ -258,12 +196,17 @@ pub fn init(system_lines: []const Line) !void {
             }
             var total_stations: u9 = 0;
             for (line.ranges) |range| {
-                if (range.indices.end < range.indices.start) {
+                if (range.connection.indices.end <
+                    range.connection.indices.start)
+                {
                     return error.InvalidStationRange;
                 }
-                const start: usize = range.indices.start;
-                const end: usize = @as(usize, range.indices.end) + 1;
-                const channel_idx: u2 = @intFromEnum(range.channel);
+                const start: usize = range.connection.indices.start;
+                const end: usize = @as(
+                    usize,
+                    range.connection.indices.end,
+                ) + 1;
+                const channel_idx: u2 = @intFromEnum(range.connection.channel);
                 if (!std.mem.allEqual(
                     bool,
                     used_stations[channel_idx][start..end],
@@ -300,6 +243,17 @@ pub fn init(system_lines: []const Line) !void {
             line.ranges,
         );
         all_lines[line_counter].ranges = all_ranges[ranges_offset..ranges_end];
+
+        var range_start: Line.Index = 0;
+        for (all_lines[line_counter].ranges) |*range| {
+            const range_len: Line.Index =
+                range.connection.indices.end - range.connection.indices.start;
+            range.start = range_start;
+            range.end = range_start + range_len;
+            range_start += range_len + 1;
+            range.line = &all_lines[line_counter];
+        }
+
         ranges_offset += line.ranges.len;
     }
 }
