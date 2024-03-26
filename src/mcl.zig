@@ -17,7 +17,7 @@ const StationIndex = connection.Station.Index;
 
 pub const Station = struct {
     connection: connection.Channel.Index,
-    line: *const Line,
+    line: *const Line = undefined,
     /// Index within configured line, spanning across connection ranges.
     index: Line.Index = undefined,
 
@@ -25,9 +25,9 @@ pub const Station = struct {
     /// CC-Link connection channel.
     pub const Range = struct {
         connection: connection.Channel.Range,
-        start: Line.Index,
-        end: Line.Index,
-        line: *const Line,
+        start: Line.Index = undefined,
+        end: Line.Index = undefined,
+        line: *const Line = undefined,
 
         pub fn len(range: Range) usize {
             return @as(usize, range.end - range.start) + 1;
