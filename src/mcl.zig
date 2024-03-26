@@ -85,7 +85,6 @@ pub const Line = struct {
     }
 
     pub fn disconnect(line: Line) !void {
-        var used_channels: [4]bool = .{ false, false, false, false };
         for (line.ranges) |range| {
             for (0..range.connection.len()) |i| {
                 const index = try range.connection.index(i);
@@ -93,13 +92,6 @@ pub const Line = struct {
                 y.*.cc_link_enable = false;
             }
             try range.connection.sendY();
-            used_channels[@intFromEnum(range.connection.channel)] = true;
-        }
-        for (used_channels, 0..) |used, i| {
-            if (used) {
-                const chan: connection.Channel = @enumFromInt(i);
-                try chan.close();
-            }
         }
     }
 
@@ -325,4 +317,36 @@ pub fn stopTrafficTransmission(
         }
     }
     return null;
+}
+
+/// Opens all channels used in all configured lines.
+pub fn open() !void {
+    var used_channels: [4]bool = .{ false, false, false, false };
+    for (lines) |line| {
+        for (line.ranges) |range| {
+            used_channels[@intFromEnum(range.connection.channel)] = true;
+        }
+    }
+    for (used_channels, 0..) |used, i| {
+        if (used) {
+            const chan: connection.Channel = @enumFromInt(i);
+            try chan.open();
+        }
+    }
+}
+
+/// Closes all channels used in all configured lines.
+pub fn close() !void {
+    var used_channels: [4]bool = .{ false, false, false, false };
+    for (lines) |line| {
+        for (line.ranges) |range| {
+            used_channels[@intFromEnum(range.connection.channel)] = true;
+        }
+    }
+    for (used_channels, 0..) |used, i| {
+        if (used) {
+            const chan: connection.Channel = @enumFromInt(i);
+            try chan.close();
+        }
+    }
 }
