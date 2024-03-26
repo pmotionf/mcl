@@ -118,7 +118,7 @@ pub const Line = struct {
     }
 
     pub fn axisStation(line: *const Line, axis: u10) !Station {
-        line.station(@intCast(@divTrunc(axis, 3)));
+        return try line.station(@intCast(@divTrunc(axis, 3)));
     }
 
     pub fn poll(line: Line) !void {
