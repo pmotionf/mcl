@@ -45,7 +45,7 @@ pub const X = packed struct(u64) {
     servo_enabled: bool = false,
     emergency_stop_enabled: bool = false,
     paused: bool = false,
-    axes_interconnect_enabled: bool = false,
+    axis_slider_info_cleared: bool = false,
     command_received: bool = false,
     axis_enabled: packed struct(u3) {
         axis1: bool = false,
