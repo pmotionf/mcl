@@ -52,17 +52,17 @@ pub const X = packed struct(u64) {
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    location_ready: packed struct(u3) {
+    in_position: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    detected_forward: packed struct(u3) {
+    entered_front: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    detected_backward: packed struct(u3) {
+    entered_back: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
@@ -72,8 +72,10 @@ pub const X = packed struct(u64) {
         from_next: bool = false,
     } = .{},
     errors_cleared: bool = false,
-    axis1_communication_error: bool = false,
-    axis3_communication_error: bool = false,
+    communication_error: packed struct(u2) {
+        from_prev: bool = false,
+        from_next: bool = false,
+    } = .{},
     inverter_overheat_detected: bool = false,
     overcurrent_detected: packed struct(u3) {
         axis1: bool = false,
@@ -85,7 +87,7 @@ pub const X = packed struct(u64) {
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    hall_sensor: packed struct(u6) {
+    hall_alarm: packed struct(u6) {
         axis1: packed struct(u2) {
             back: bool = false,
             front: bool = false,
@@ -144,29 +146,29 @@ pub const X = packed struct(u64) {
         };
     }
 
-    pub fn locationReady(self: X, axis_index: u2) bool {
+    pub fn inPosition(self: X, axis_index: u2) bool {
         return switch (axis_index) {
-            0 => self.location_ready.axis1,
-            1 => self.location_ready.axis2,
-            2 => self.location_ready.axis3,
+            0 => self.in_position.axis1,
+            1 => self.in_position.axis2,
+            2 => self.in_position.axis3,
             3 => unreachable,
         };
     }
 
-    pub fn detectedForward(self: X, axis_index: u2) bool {
+    pub fn enteredFront(self: X, axis_index: u2) bool {
         return switch (axis_index) {
-            0 => self.detected_forward.axis1,
-            1 => self.detected_forward.axis2,
-            2 => self.detected_forward.axis3,
+            0 => self.entered_front.axis1,
+            1 => self.entered_front.axis2,
+            2 => self.entered_front.axis3,
             3 => unreachable,
         };
     }
 
-    pub fn detectedBackward(self: X, axis_index: u2) bool {
+    pub fn enteredBack(self: X, axis_index: u2) bool {
         return switch (axis_index) {
-            0 => self.detected_backward.axis1,
-            1 => self.detected_backward.axis2,
-            2 => self.detected_backward.axis3,
+            0 => self.entered_back.axis1,
+            1 => self.entered_back.axis2,
+            2 => self.entered_back.axis3,
             3 => unreachable,
         };
     }
@@ -196,22 +198,22 @@ pub const X = packed struct(u64) {
         };
     }
 
-    pub fn hallSensor(self: X, axis_index: u2) struct {
+    pub fn hallAlarm(self: X, axis_index: u2) struct {
         back: bool,
         front: bool,
     } {
         return switch (axis_index) {
             0 => .{
-                .back = self.hall_sensor.axis1.back,
-                .front = self.hall_sensor.axis1.front,
+                .back = self.hall_alarm.axis1.back,
+                .front = self.hall_alarm.axis1.front,
             },
             1 => .{
-                .back = self.hall_sensor.axis2.back,
-                .front = self.hall_sensor.axis2.front,
+                .back = self.hall_alarm.axis2.back,
+                .front = self.hall_alarm.axis2.front,
             },
             2 => .{
-                .back = self.hall_sensor.axis3.back,
-                .front = self.hall_sensor.axis3.front,
+                .back = self.hall_alarm.axis3.back,
+                .front = self.hall_alarm.axis3.front,
             },
             3 => unreachable,
         };
@@ -254,6 +256,142 @@ pub const X = packed struct(u64) {
             },
             3 => unreachable,
         };
+    }
+
+    pub fn format(
+        x: X,
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        try writer.writeAll("X{\n");
+        _ = try writer.print("\tcc_link_enabled: {},\n", .{x.cc_link_enabled});
+        _ = try writer.print("\tservice_enabled: {},\n", .{x.service_enabled});
+        _ = try writer.print(
+            "\tready_for_command: {},\n",
+            .{x.ready_for_command},
+        );
+        _ = try writer.writeAll("\tservo_active: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.servo_active.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.servo_active.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.servo_active.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.print("\tservo_enabled: {},\n", .{x.servo_enabled});
+        _ = try writer.print(
+            "\temergency_stop_enabled: {},\n",
+            .{x.emergency_stop_enabled},
+        );
+        _ = try writer.print("\tpaused: {},\n", .{x.paused});
+        _ = try writer.print(
+            "\taxis_slider_info_cleared: {},\n",
+            .{x.axis_slider_info_cleared},
+        );
+        _ = try writer.print(
+            "\tcommand_received: {},\n",
+            .{x.command_received},
+        );
+        _ = try writer.writeAll("\taxis_enabled: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.axis_enabled.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.axis_enabled.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.axis_enabled.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\tin_position: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.in_position.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.in_position.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.in_position.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\tentered_front: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.entered_front.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.entered_front.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.entered_front.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\tentered_back: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.entered_back.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.entered_back.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.entered_back.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\ttransmission_stopped: {\n");
+        _ = try writer.print(
+            "\t\tfrom_prev: {},\n",
+            .{x.transmission_stopped.from_prev},
+        );
+        _ = try writer.print(
+            "\t\tfrom_next: {},\n",
+            .{x.transmission_stopped.from_next},
+        );
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.print("\terrors_cleared: {},\n", .{x.errors_cleared});
+        _ = try writer.writeAll("\tcommunication_error: {\n");
+        _ = try writer.print(
+            "\t\tfrom_prev: {},\n",
+            .{x.communication_error.from_prev},
+        );
+        _ = try writer.print(
+            "\t\tfrom_next: {},\n",
+            .{x.communication_error.from_next},
+        );
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.print(
+            "inverter_overheat_detected: {},\n",
+            .{x.inverter_overheat_detected},
+        );
+        _ = try writer.writeAll("\tovercurrent_detected: {\n");
+        _ = try writer.print(
+            "\t\taxis1: {},\n",
+            .{x.overcurrent_detected.axis1},
+        );
+        _ = try writer.print(
+            "\t\taxis2: {},\n",
+            .{x.overcurrent_detected.axis2},
+        );
+        _ = try writer.print(
+            "\t\taxis3: {},\n",
+            .{x.overcurrent_detected.axis3},
+        );
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\tcontrol_failure: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.control_failure.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.control_failure.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.control_failure.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\thall_alarm: {\n");
+        for (0..3) |_i| {
+            const i: u2 = @intCast(_i);
+            _ = try writer.print("\t\taxis{}: {{\n", .{i});
+            _ = try writer.print("\t\t\tback: {},\n", .{x.hallAlarm(i).back});
+            _ = try writer.print(
+                "\t\t\tfront: {},\n",
+                .{x.hallAlarm(i).front},
+            );
+            _ = try writer.writeAll("\t\t},\n");
+        }
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\tself_pause: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.self_pause.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.self_pause.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.self_pause.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\tpulling_slider: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{x.pulling_slider.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{x.pulling_slider.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{x.pulling_slider.axis3});
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.writeAll("\thall_alarm_abnormal: {\n");
+        for (0..3) |_i| {
+            const i: u2 = @intCast(_i);
+            _ = try writer.print("\t\taxis{}: {{\n", .{i});
+            _ = try writer.print(
+                "\t\t\tback: {},\n",
+                .{x.hallAlarmAbnormal(i).back},
+            );
+            _ = try writer.print(
+                "\t\t\tfront: {},\n",
+                .{x.hallAlarmAbnormal(i).front},
+            );
+            _ = try writer.writeAll("\t\t},\n");
+        }
+        _ = try writer.writeAll("\t},\n");
+        try writer.writeAll("}\n");
     }
 };
 
@@ -424,6 +562,40 @@ pub const Wr = packed struct(u256) {
             2 => self.pitch_count.axis3,
             3 => unreachable,
         };
+    }
+
+    pub fn format(
+        wr: Wr,
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        try writer.writeAll("Wr: {\n");
+        _ = try writer.print(
+            "\tcommand_response: {},\n",
+            .{wr.command_response},
+        );
+        try writer.writeAll("\tslider_number: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{wr.slider_number.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{wr.slider_number.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{wr.slider_number.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tslider_location: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{wr.slider_location.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{wr.slider_location.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{wr.slider_location.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tslider_state: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{wr.slider_state.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{wr.slider_state.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{wr.slider_state.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tpitch_count: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{wr.pitch_count.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{wr.pitch_count.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{wr.pitch_count.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("}\n");
     }
 };
 
