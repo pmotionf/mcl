@@ -441,6 +441,51 @@ pub const Y = packed struct(u64) {
             3 => unreachable,
         }
     }
+
+    pub fn format(
+        y: Y,
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        try writer.writeAll("Y{\n");
+        _ = try writer.print("\tcc_link_enable: {},\n", .{y.cc_link_enable});
+        _ = try writer.print("\tservice_enable: {},\n", .{y.service_enable});
+        _ = try writer.print("\tstart_command: {},\n", .{y.start_command});
+        _ = try writer.print(
+            "\treset_command_received: {},\n",
+            .{y.reset_command_received},
+        );
+        _ = try writer.print(
+            "\tper_axis_servo_release: {},\n",
+            .{y.per_axis_servo_release},
+        );
+        _ = try writer.print("\tservo_release: {},\n", .{y.servo_release});
+        _ = try writer.print("\ttemporary_pause: {},\n", .{y.temporary_pause});
+        _ = try writer.writeAll("\tstop_driver_transmission: {\n");
+        _ = try writer.print(
+            "\t\tfrom_prev: {},\n",
+            .{y.stop_driver_transmission.from_prev},
+        );
+        _ = try writer.print(
+            "\t\tfrom_next: {},\n",
+            .{y.stop_driver_transmission.from_next},
+        );
+        _ = try writer.writeAll("\t},\n");
+        _ = try writer.print("\tclear_errors: {},\n", .{y.clear_errors});
+        _ = try writer.print(
+            "\tclear_axis_slider_info: {},\n",
+            .{y.clear_axis_slider_info},
+        );
+        _ = try writer.print("\tprev_axis_link: {},\n", .{y.prev_axis_link});
+        _ = try writer.print("\tnext_axis_link: {},\n", .{y.next_axis_link});
+        _ = try writer.writeAll("\treset_pull_slider: {\n");
+        _ = try writer.print("\t\taxis1: {},\n", .{y.reset_pull_slider.axis1});
+        _ = try writer.print("\t\taxis2: {},\n", .{y.reset_pull_slider.axis2});
+        _ = try writer.print("\t\taxis3: {},\n", .{y.reset_pull_slider.axis3});
+        _ = try writer.writeAll("\t},\n");
+        try writer.writeAll("}\n");
+    }
 };
 
 test "Y" {
@@ -640,6 +685,37 @@ pub const Ww = packed struct(u256) {
         PullAxisSliderForward = 32,
         PullAxisSliderBackward = 33,
     };
+
+    pub fn format(
+        ww: Ww,
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        try writer.writeAll("Ww: {\n");
+        _ = try writer.print("\tcommand_code: {},\n", .{ww.command_code});
+        _ = try writer.print(
+            "\tcommand_slider_number: {},\n",
+            .{ww.command_slider_number},
+        );
+        _ = try writer.print(
+            "\ttarget_axis_number: {},\n",
+            .{ww.target_axis_number},
+        );
+        _ = try writer.print(
+            "\tlocation_distance: {},\n",
+            .{ww.location_distance},
+        );
+        _ = try writer.print(
+            "\tspeed_percentage: {},\n",
+            .{ww.speed_percentage},
+        );
+        _ = try writer.print(
+            "\tacceleration_percentage: {},\n",
+            .{ww.acceleration_percentage},
+        );
+        try writer.writeAll("}\n");
+    }
 };
 
 test "Ww" {

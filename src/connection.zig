@@ -58,6 +58,18 @@ pub const Channel = enum(u2) {
             );
         }
 
+        pub fn pollY(
+            index: Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            var stations_list = try index.channel.initializedStations();
+            try receiveY(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.y[index.index]),
+            );
+        }
+
         pub fn pollWr(
             index: Index,
         ) (ConnectionError || StateError || MelsecError)!void {
@@ -67,6 +79,18 @@ pub const Channel = enum(u2) {
                 p,
                 .{ .start = index.index, .end = index.index },
                 std.mem.asBytes(&stations_list.wr[index.index]),
+            );
+        }
+
+        pub fn pollWw(
+            index: Index,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try index.channel.openedPath();
+            var stations_list = try index.channel.initializedStations();
+            try receiveWw(
+                p,
+                .{ .start = index.index, .end = index.index },
+                std.mem.asBytes(&stations_list.ww[index.index]),
             );
         }
 
@@ -229,6 +253,20 @@ pub const Channel = enum(u2) {
             );
         }
 
+        pub fn pollY(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try range.channel.openedPath();
+            var stations_list = try range.channel.initializedStations();
+            const end_exclusive: u7 = @as(u7, @intCast(range.indices.end)) + 1;
+            const start = range.indices.start;
+            try receiveY(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.y[start..end_exclusive]),
+            );
+        }
+
         pub fn pollWr(
             range: Range,
         ) (ConnectionError || StateError || MelsecError)!void {
@@ -240,6 +278,20 @@ pub const Channel = enum(u2) {
                 p,
                 range.indices,
                 std.mem.sliceAsBytes(stations_list.wr[start..end_exclusive]),
+            );
+        }
+
+        pub fn pollWw(
+            range: Range,
+        ) (ConnectionError || StateError || MelsecError)!void {
+            const p: i32 = try range.channel.openedPath();
+            var stations_list = try range.channel.initializedStations();
+            const end_exclusive: u7 = @as(u7, range.indices.end) + 1;
+            const start = range.indices.start;
+            try receiveWw(
+                p,
+                range.indices,
+                std.mem.sliceAsBytes(stations_list.ww[start..end_exclusive]),
             );
         }
 
