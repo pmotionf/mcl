@@ -332,7 +332,7 @@ pub const X = packed struct(u64) {
         );
         _ = try writer.writeAll("\t},\n");
         _ = try writer.print(
-            "inverter_overheat_detected: {},\n",
+            "\tinverter_overheat_detected: {},\n",
             .{x.inverter_overheat_detected},
         );
         _ = try writer.writeAll("\tovercurrent_detected: {\n");
