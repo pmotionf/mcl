@@ -357,7 +357,7 @@ pub const X = packed struct(u64) {
         _ = try writer.writeAll("\thall_alarm: {\n");
         for (0..3) |_i| {
             const i: u2 = @intCast(_i);
-            _ = try writer.print("\t\taxis{}: {{\n", .{i});
+            _ = try writer.print("\t\taxis{}: {{\n", .{i + 1});
             _ = try writer.print("\t\t\tback: {},\n", .{x.hallAlarm(i).back});
             _ = try writer.print(
                 "\t\t\tfront: {},\n",
@@ -379,7 +379,7 @@ pub const X = packed struct(u64) {
         _ = try writer.writeAll("\thall_alarm_abnormal: {\n");
         for (0..3) |_i| {
             const i: u2 = @intCast(_i);
-            _ = try writer.print("\t\taxis{}: {{\n", .{i});
+            _ = try writer.print("\t\taxis{}: {{\n", .{i + 1});
             _ = try writer.print(
                 "\t\t\tback: {},\n",
                 .{x.hallAlarmAbnormal(i).back},
