@@ -126,7 +126,21 @@ pub const X = packed struct(u64) {
             front: bool = false,
         } = .{},
     } = .{},
-    _54: u10 = 0,
+    chain_enabled: packed struct(u6) {
+        axis1: packed struct(u2) {
+            back: bool = false,
+            front: bool = false,
+        } = .{},
+        axis2: packed struct(u2) {
+            back: bool = false,
+            front: bool = false,
+        } = .{},
+        axis3: packed struct(u2) {
+            back: bool = false,
+            front: bool = false,
+        } = .{},
+    } = .{},
+    _60: u4 = 0,
 
     pub fn servoActive(self: X, axis_index: u2) bool {
         return switch (axis_index) {
@@ -177,6 +191,13 @@ pub const X = packed struct(u64) {
         return switch (dir) {
             .backward => self.transmission_stopped.from_prev,
             .forward => self.transmission_stopped.from_next,
+        };
+    }
+
+    pub fn communicationError(self: X, dir: Direction) bool {
+        return switch (dir) {
+            .backward => self.communication_error.from_prev,
+            .forward => self.communication_error.from_next,
         };
     }
 
@@ -255,6 +276,27 @@ pub const X = packed struct(u64) {
                 .front = self.hall_alarm_abnormal.axis3.front,
             },
             3 => unreachable,
+        };
+    }
+
+    pub fn chainEnabled(self: X, axis_index: u2) struct {
+        back: bool,
+        front: bool,
+    } {
+        return switch (axis_index) {
+            0 => .{
+                .back = self.chain_enabled.axis1.back,
+                .front = self.chain_enabled.axis1.front,
+            },
+            1 => .{
+                .back = self.chain_enabled.axis2.back,
+                .front = self.chain_enabled.axis2.front,
+            },
+            2 => .{
+                .back = self.chain_enabled.axis3.back,
+                .front = self.chain_enabled.axis3.front,
+            },
+            else => unreachable,
         };
     }
 
@@ -407,9 +449,9 @@ pub const Y = packed struct(u64) {
     start_command: bool = false,
     reset_command_received: bool = false,
     _4: u1 = 0,
-    per_axis_servo_release: bool = false,
+    axis_servo_release: bool = false,
     servo_release: bool = false,
-    _7: u1 = 0,
+    emergency_stop: bool = false,
     temporary_pause: bool = false,
     stop_driver_transmission: packed struct(u2) {
         from_prev: bool = false,
@@ -417,17 +459,58 @@ pub const Y = packed struct(u64) {
     } = .{},
     clear_errors: bool = false,
     clear_axis_slider_info: bool = false,
-    prev_axis_link: bool = false, // During slider speed movement, move with speed linked to prev axis.
-    next_axis_link: bool = false, // During slider speed movement, move with speed linked to next axis.
+    prev_axis_isolate_link: bool = false,
+    next_axis_isolate_link: bool = false,
     _15: u1 = 0,
     reset_pull_slider: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    _19: u45 = 0,
+    recovery_use_hall_sensor: packed struct(u2) {
+        back: bool = false,
+        front: bool = false,
+    } = .{},
+    link_chain: packed struct(u6) {
+        axis1: packed struct(u2) {
+            backward: bool = false,
+            forward: bool = false,
+        } = .{},
+        axis2: packed struct(u2) {
+            backward: bool = false,
+            forward: bool = false,
+        } = .{},
+        axis3: packed struct(u2) {
+            backward: bool = false,
+            forward: bool = false,
+        } = .{},
+    } = .{},
+    unlink_chain: packed struct(u6) {
+        axis1: packed struct(u2) {
+            backward: bool = false,
+            forward: bool = false,
+        } = .{},
+        axis2: packed struct(u2) {
+            backward: bool = false,
+            forward: bool = false,
+        } = .{},
+        axis3: packed struct(u2) {
+            backward: bool = false,
+            forward: bool = false,
+        } = .{},
+    } = .{},
+    _33: u31 = 0,
 
-    pub fn resetPullSlider(self: *Y, axis_index: u2, value: bool) void {
+    pub fn resetPullSlider(self: Y, axis_index: u2) bool {
+        switch (axis_index) {
+            0 => self.reset_pull_slider.axis1,
+            1 => self.reset_pull_slider.axis2,
+            2 => self.reset_pull_slider.axis3,
+            else => unreachable,
+        }
+    }
+
+    pub fn setResetPullSlider(self: *Y, axis_index: u2, value: bool) void {
         switch (axis_index) {
             0 => {
                 self.*.reset_pull_slider.axis1 = value;
@@ -442,6 +525,102 @@ pub const Y = packed struct(u64) {
         }
     }
 
+    pub fn linkChain(self: Y, axis_index: u2) struct {
+        backward: bool,
+        forward: bool,
+    } {
+        return switch (axis_index) {
+            0 => .{
+                .backward = self.link_chain.axis1.backward,
+                .forward = self.link_chain.axis1.forward,
+            },
+            1 => .{
+                .backward = self.link_chain.axis2.backward,
+                .forward = self.link_chain.axis2.forward,
+            },
+            2 => .{
+                .backward = self.link_chain.axis3.backward,
+                .forward = self.link_chain.axis3.forward,
+            },
+            else => unreachable,
+        };
+    }
+
+    pub fn setLinkChain(
+        self: *Y,
+        axis_index: u2,
+        val: struct {
+            forward: ?bool = null,
+            backward: ?bool = null,
+        },
+    ) void {
+        switch (axis_index) {
+            inline 0...3 => |num| {
+                if (val.forward) |f| {
+                    (@field(
+                        self.*.link_chain,
+                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
+                    )).forward = f;
+                }
+                if (val.backward) |b| {
+                    (@field(
+                        self.*.link_chain,
+                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
+                    )).backward = b;
+                }
+            },
+            else => unreachable,
+        }
+    }
+
+    pub fn unlinkChain(self: Y, axis_index: u2) struct {
+        backward: bool,
+        forward: bool,
+    } {
+        return switch (axis_index) {
+            0 => .{
+                .backward = self.unlink_chain.axis1.backward,
+                .forward = self.unlink_chain.axis1.forward,
+            },
+            1 => .{
+                .backward = self.unlink_chain.axis2.backward,
+                .forward = self.unlink_chain.axis2.forward,
+            },
+            2 => .{
+                .backward = self.unlink_chain.axis3.backward,
+                .forward = self.unlink_chain.axis3.forward,
+            },
+            else => unreachable,
+        };
+    }
+
+    pub fn setUnlinkChain(
+        self: *Y,
+        axis_index: u2,
+        val: struct {
+            forward: ?bool = null,
+            backward: ?bool = null,
+        },
+    ) void {
+        switch (axis_index) {
+            inline 0...3 => |num| {
+                if (val.forward) |f| {
+                    (@field(
+                        self.*.unlink_chain,
+                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
+                    )).forward = f;
+                }
+                if (val.backward) |b| {
+                    (@field(
+                        self.*.unlink_chain,
+                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
+                    )).backward = b;
+                }
+            },
+            else => unreachable,
+        }
+    }
+
     pub fn format(
         y: Y,
         comptime _: []const u8,
@@ -449,42 +628,89 @@ pub const Y = packed struct(u64) {
         writer: anytype,
     ) !void {
         try writer.writeAll("Y{\n");
-        _ = try writer.print("\tcc_link_enable: {},\n", .{y.cc_link_enable});
-        _ = try writer.print("\tservice_enable: {},\n", .{y.service_enable});
-        _ = try writer.print("\tstart_command: {},\n", .{y.start_command});
-        _ = try writer.print(
+        try writer.print("\tcc_link_enable: {},\n", .{y.cc_link_enable});
+        try writer.print("\tservice_enable: {},\n", .{y.service_enable});
+        try writer.print("\tstart_command: {},\n", .{y.start_command});
+        try writer.print(
             "\treset_command_received: {},\n",
             .{y.reset_command_received},
         );
-        _ = try writer.print(
-            "\tper_axis_servo_release: {},\n",
-            .{y.per_axis_servo_release},
+        try writer.print(
+            "\taxis_servo_release: {},\n",
+            .{y.axis_servo_release},
         );
-        _ = try writer.print("\tservo_release: {},\n", .{y.servo_release});
-        _ = try writer.print("\ttemporary_pause: {},\n", .{y.temporary_pause});
-        _ = try writer.writeAll("\tstop_driver_transmission: {\n");
-        _ = try writer.print(
+        try writer.print("\tservo_release: {},\n", .{y.servo_release});
+        try writer.print("\temergency_stop: {},\n", .{y.emergency_stop});
+        try writer.print("\ttemporary_pause: {},\n", .{y.temporary_pause});
+        try writer.writeAll("\tstop_driver_transmission: {\n");
+        try writer.print(
             "\t\tfrom_prev: {},\n",
             .{y.stop_driver_transmission.from_prev},
         );
-        _ = try writer.print(
+        try writer.print(
             "\t\tfrom_next: {},\n",
             .{y.stop_driver_transmission.from_next},
         );
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.print("\tclear_errors: {},\n", .{y.clear_errors});
-        _ = try writer.print(
+        try writer.writeAll("\t},\n");
+        try writer.print("\tclear_errors: {},\n", .{y.clear_errors});
+        try writer.print(
             "\tclear_axis_slider_info: {},\n",
             .{y.clear_axis_slider_info},
         );
-        _ = try writer.print("\tprev_axis_link: {},\n", .{y.prev_axis_link});
-        _ = try writer.print("\tnext_axis_link: {},\n", .{y.next_axis_link});
-        _ = try writer.writeAll("\treset_pull_slider: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{y.reset_pull_slider.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{y.reset_pull_slider.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{y.reset_pull_slider.axis3});
-        _ = try writer.writeAll("\t},\n");
+        try writer.print(
+            "\tprev_axis_isolate_link: {},\n",
+            .{y.prev_axis_isolate_link},
+        );
+        try writer.print(
+            "\tnext_axis_isolate_link: {},\n",
+            .{y.next_axis_isolate_link},
+        );
+        try writer.writeAll("\treset_pull_slider: {\n");
+        try writer.print("\t\taxis1: {},\n", .{y.reset_pull_slider.axis1});
+        try writer.print("\t\taxis2: {},\n", .{y.reset_pull_slider.axis2});
+        try writer.print("\t\taxis3: {},\n", .{y.reset_pull_slider.axis3});
+        try writer.writeAll("\t},\n");
         try writer.writeAll("}\n");
+        try writer.writeAll("\trecovery_use_hall_sensor: {\n");
+        try writer.print(
+            "\t\tback: {},\n",
+            .{y.recovery_use_hall_sensor.back},
+        );
+        try writer.print(
+            "\t\tfront: {},\n",
+            .{y.recovery_use_hall_sensor.front},
+        );
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tlink_chain: {\n");
+        for (0..3) |_i| {
+            const i: u2 = @intCast(_i);
+            try writer.print("\t\taxis{}: {{\n", .{i + 1});
+            try writer.print(
+                "\t\t\tbackward: {},\n",
+                .{y.linkChain(i).backward},
+            );
+            try writer.print(
+                "\t\t\tforward: {},\n",
+                .{y.linkChain(i).forward},
+            );
+            try writer.writeAll("\t\t},\n");
+        }
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tunlink_chain: {\n");
+        for (0..3) |_i| {
+            const i: u2 = @intCast(_i);
+            try writer.print("\t\taxis{}: {{\n", .{i + 1});
+            try writer.print(
+                "\t\t\tbackward: {},\n",
+                .{y.unlinkChain(i).backward},
+            );
+            try writer.print(
+                "\t\t\tforward: {},\n",
+                .{y.unlinkChain(i).forward},
+            );
+            try writer.writeAll("\t\t},\n");
+        }
+        try writer.writeAll("\t},\n");
     }
 };
 
