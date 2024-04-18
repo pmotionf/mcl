@@ -128,16 +128,16 @@ pub const X = packed struct(u64) {
     } = .{},
     chain_enabled: packed struct(u6) {
         axis1: packed struct(u2) {
-            back: bool = false,
-            front: bool = false,
+            backward: bool = false,
+            forward: bool = false,
         } = .{},
         axis2: packed struct(u2) {
-            back: bool = false,
-            front: bool = false,
+            backward: bool = false,
+            forward: bool = false,
         } = .{},
         axis3: packed struct(u2) {
-            back: bool = false,
-            front: bool = false,
+            backward: bool = false,
+            forward: bool = false,
         } = .{},
     } = .{},
     _60: u4 = 0,
@@ -280,21 +280,21 @@ pub const X = packed struct(u64) {
     }
 
     pub fn chainEnabled(self: X, axis_index: u2) struct {
-        back: bool,
-        front: bool,
+        backward: bool,
+        forward: bool,
     } {
         return switch (axis_index) {
             0 => .{
-                .back = self.chain_enabled.axis1.back,
-                .front = self.chain_enabled.axis1.front,
+                .backward = self.chain_enabled.axis1.backward,
+                .forward = self.chain_enabled.axis1.forward,
             },
             1 => .{
-                .back = self.chain_enabled.axis2.back,
-                .front = self.chain_enabled.axis2.front,
+                .backward = self.chain_enabled.axis2.backward,
+                .forward = self.chain_enabled.axis2.forward,
             },
             2 => .{
-                .back = self.chain_enabled.axis3.back,
-                .front = self.chain_enabled.axis3.front,
+                .backward = self.chain_enabled.axis3.backward,
+                .forward = self.chain_enabled.axis3.forward,
             },
             else => unreachable,
         };
@@ -429,6 +429,22 @@ pub const X = packed struct(u64) {
             _ = try writer.print(
                 "\t\t\tfront: {},\n",
                 .{x.hallAlarmAbnormal(i).front},
+            );
+            _ = try writer.writeAll("\t\t},\n");
+        }
+        _ = try writer.writeAll("\t},\n");
+        try writer.writeAll("}\n");
+        _ = try writer.writeAll("\tchain_enabled: {\n");
+        for (0..3) |_i| {
+            const i: u2 = @intCast(_i);
+            _ = try writer.print("\t\taxis{}: {{\n", .{i + 1});
+            _ = try writer.print(
+                "\t\t\tback: {},\n",
+                .{x.chainEnabled(i).backward},
+            );
+            _ = try writer.print(
+                "\t\t\tfront: {},\n",
+                .{x.chainEnabled(i).forward},
             );
             _ = try writer.writeAll("\t\t},\n");
         }
@@ -940,8 +956,8 @@ pub const Ww = packed struct(u256) {
         MoveSliderToAxisBySpeed = 21,
         MoveSliderToLocationBySpeed = 22,
         MoveSliderDistanceBySpeed = 23,
-        ForwardDirectionSeparation = 24,
-        BackwardDirectionSeparation = 25,
+        IsolateForward = 24,
+        IsolateBackward = 25,
         Calibration = 26,
         RecoverSystemSliders = 27,
         RecoverSliderAtAxis = 28,
