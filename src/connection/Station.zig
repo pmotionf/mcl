@@ -111,7 +111,7 @@ pub const X = packed struct(u64) {
         axis2: bool = false,
         axis3: bool = false,
     } = .{},
-    _47: u1 = 0,
+    control_loop_max_time_exceeded: bool = false,
     hall_alarm_abnormal: packed struct(u6) {
         axis1: packed struct(u2) {
             back: bool = false,
@@ -307,148 +307,152 @@ pub const X = packed struct(u64) {
         writer: anytype,
     ) !void {
         try writer.writeAll("X{\n");
-        _ = try writer.print("\tcc_link_enabled: {},\n", .{x.cc_link_enabled});
-        _ = try writer.print("\tservice_enabled: {},\n", .{x.service_enabled});
-        _ = try writer.print(
+        try writer.print("\tcc_link_enabled: {},\n", .{x.cc_link_enabled});
+        try writer.print("\tservice_enabled: {},\n", .{x.service_enabled});
+        try writer.print(
             "\tready_for_command: {},\n",
             .{x.ready_for_command},
         );
-        _ = try writer.writeAll("\tservo_active: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.servo_active.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.servo_active.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.servo_active.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.print("\tservo_enabled: {},\n", .{x.servo_enabled});
-        _ = try writer.print(
+        try writer.writeAll("\tservo_active: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.servo_active.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.servo_active.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.servo_active.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.print("\tservo_enabled: {},\n", .{x.servo_enabled});
+        try writer.print(
             "\temergency_stop_enabled: {},\n",
             .{x.emergency_stop_enabled},
         );
-        _ = try writer.print("\tpaused: {},\n", .{x.paused});
-        _ = try writer.print(
+        try writer.print("\tpaused: {},\n", .{x.paused});
+        try writer.print(
             "\taxis_slider_info_cleared: {},\n",
             .{x.axis_slider_info_cleared},
         );
-        _ = try writer.print(
+        try writer.print(
             "\tcommand_received: {},\n",
             .{x.command_received},
         );
-        _ = try writer.writeAll("\taxis_enabled: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.axis_enabled.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.axis_enabled.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.axis_enabled.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\tin_position: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.in_position.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.in_position.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.in_position.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\tentered_front: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.entered_front.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.entered_front.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.entered_front.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\tentered_back: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.entered_back.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.entered_back.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.entered_back.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\ttransmission_stopped: {\n");
-        _ = try writer.print(
+        try writer.writeAll("\taxis_enabled: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.axis_enabled.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.axis_enabled.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.axis_enabled.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tin_position: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.in_position.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.in_position.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.in_position.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tentered_front: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.entered_front.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.entered_front.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.entered_front.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tentered_back: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.entered_back.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.entered_back.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.entered_back.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\ttransmission_stopped: {\n");
+        try writer.print(
             "\t\tfrom_prev: {},\n",
             .{x.transmission_stopped.from_prev},
         );
-        _ = try writer.print(
+        try writer.print(
             "\t\tfrom_next: {},\n",
             .{x.transmission_stopped.from_next},
         );
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.print("\terrors_cleared: {},\n", .{x.errors_cleared});
-        _ = try writer.writeAll("\tcommunication_error: {\n");
-        _ = try writer.print(
+        try writer.writeAll("\t},\n");
+        try writer.print("\terrors_cleared: {},\n", .{x.errors_cleared});
+        try writer.writeAll("\tcommunication_error: {\n");
+        try writer.print(
             "\t\tfrom_prev: {},\n",
             .{x.communication_error.from_prev},
         );
-        _ = try writer.print(
+        try writer.print(
             "\t\tfrom_next: {},\n",
             .{x.communication_error.from_next},
         );
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.print(
+        try writer.writeAll("\t},\n");
+        try writer.print(
             "\tinverter_overheat_detected: {},\n",
             .{x.inverter_overheat_detected},
         );
-        _ = try writer.writeAll("\tovercurrent_detected: {\n");
-        _ = try writer.print(
+        try writer.writeAll("\tovercurrent_detected: {\n");
+        try writer.print(
             "\t\taxis1: {},\n",
             .{x.overcurrent_detected.axis1},
         );
-        _ = try writer.print(
+        try writer.print(
             "\t\taxis2: {},\n",
             .{x.overcurrent_detected.axis2},
         );
-        _ = try writer.print(
+        try writer.print(
             "\t\taxis3: {},\n",
             .{x.overcurrent_detected.axis3},
         );
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\tcontrol_failure: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.control_failure.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.control_failure.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.control_failure.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\thall_alarm: {\n");
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tcontrol_failure: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.control_failure.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.control_failure.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.control_failure.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\thall_alarm: {\n");
         for (0..3) |_i| {
             const i: u2 = @intCast(_i);
-            _ = try writer.print("\t\taxis{}: {{\n", .{i + 1});
-            _ = try writer.print("\t\t\tback: {},\n", .{x.hallAlarm(i).back});
-            _ = try writer.print(
+            try writer.print("\t\taxis{}: {{\n", .{i + 1});
+            try writer.print("\t\t\tback: {},\n", .{x.hallAlarm(i).back});
+            try writer.print(
                 "\t\t\tfront: {},\n",
                 .{x.hallAlarm(i).front},
             );
-            _ = try writer.writeAll("\t\t},\n");
+            try writer.writeAll("\t\t},\n");
         }
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\tself_pause: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.self_pause.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.self_pause.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.self_pause.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\tpulling_slider: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{x.pulling_slider.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{x.pulling_slider.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{x.pulling_slider.axis3});
-        _ = try writer.writeAll("\t},\n");
-        _ = try writer.writeAll("\thall_alarm_abnormal: {\n");
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tself_pause: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.self_pause.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.self_pause.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.self_pause.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.writeAll("\tpulling_slider: {\n");
+        try writer.print("\t\taxis1: {},\n", .{x.pulling_slider.axis1});
+        try writer.print("\t\taxis2: {},\n", .{x.pulling_slider.axis2});
+        try writer.print("\t\taxis3: {},\n", .{x.pulling_slider.axis3});
+        try writer.writeAll("\t},\n");
+        try writer.print(
+            "\tcontrol_loop_max_time_exceeded: {},\n",
+            .{x.control_loop_max_time_exceeded},
+        );
+        try writer.writeAll("\thall_alarm_abnormal: {\n");
         for (0..3) |_i| {
             const i: u2 = @intCast(_i);
-            _ = try writer.print("\t\taxis{}: {{\n", .{i + 1});
-            _ = try writer.print(
+            try writer.print("\t\taxis{}: {{\n", .{i + 1});
+            try writer.print(
                 "\t\t\tback: {},\n",
                 .{x.hallAlarmAbnormal(i).back},
             );
-            _ = try writer.print(
+            try writer.print(
                 "\t\t\tfront: {},\n",
                 .{x.hallAlarmAbnormal(i).front},
             );
-            _ = try writer.writeAll("\t\t},\n");
+            try writer.writeAll("\t\t},\n");
         }
-        _ = try writer.writeAll("\t},\n");
+        try writer.writeAll("\t},\n");
         try writer.writeAll("}\n");
-        _ = try writer.writeAll("\tchain_enabled: {\n");
+        try writer.writeAll("\tchain_enabled: {\n");
         for (0..3) |_i| {
             const i: u2 = @intCast(_i);
-            _ = try writer.print("\t\taxis{}: {{\n", .{i + 1});
-            _ = try writer.print(
+            try writer.print("\t\taxis{}: {{\n", .{i + 1});
+            try writer.print(
                 "\t\t\tback: {},\n",
                 .{x.chainEnabled(i).backward},
             );
-            _ = try writer.print(
+            try writer.print(
                 "\t\t\tfront: {},\n",
                 .{x.chainEnabled(i).forward},
             );
-            _ = try writer.writeAll("\t\t},\n");
+            try writer.writeAll("\t\t},\n");
         }
-        _ = try writer.writeAll("\t},\n");
+        try writer.writeAll("\t},\n");
         try writer.writeAll("}\n");
     }
 };
@@ -897,29 +901,29 @@ pub const Wr = packed struct(u256) {
         writer: anytype,
     ) !void {
         try writer.writeAll("Wr: {\n");
-        _ = try writer.print(
+        try writer.print(
             "\tcommand_response: {},\n",
             .{wr.command_response},
         );
         try writer.writeAll("\tslider_number: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{wr.slider_number.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{wr.slider_number.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{wr.slider_number.axis3});
+        try writer.print("\t\taxis1: {},\n", .{wr.slider_number.axis1});
+        try writer.print("\t\taxis2: {},\n", .{wr.slider_number.axis2});
+        try writer.print("\t\taxis3: {},\n", .{wr.slider_number.axis3});
         try writer.writeAll("\t},\n");
         try writer.writeAll("\tslider_location: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{wr.slider_location.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{wr.slider_location.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{wr.slider_location.axis3});
+        try writer.print("\t\taxis1: {},\n", .{wr.slider_location.axis1});
+        try writer.print("\t\taxis2: {},\n", .{wr.slider_location.axis2});
+        try writer.print("\t\taxis3: {},\n", .{wr.slider_location.axis3});
         try writer.writeAll("\t},\n");
         try writer.writeAll("\tslider_state: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{wr.slider_state.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{wr.slider_state.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{wr.slider_state.axis3});
+        try writer.print("\t\taxis1: {},\n", .{wr.slider_state.axis1});
+        try writer.print("\t\taxis2: {},\n", .{wr.slider_state.axis2});
+        try writer.print("\t\taxis3: {},\n", .{wr.slider_state.axis3});
         try writer.writeAll("\t},\n");
         try writer.writeAll("\tpitch_count: {\n");
-        _ = try writer.print("\t\taxis1: {},\n", .{wr.pitch_count.axis1});
-        _ = try writer.print("\t\taxis2: {},\n", .{wr.pitch_count.axis2});
-        _ = try writer.print("\t\taxis3: {},\n", .{wr.pitch_count.axis3});
+        try writer.print("\t\taxis1: {},\n", .{wr.pitch_count.axis1});
+        try writer.print("\t\taxis2: {},\n", .{wr.pitch_count.axis2});
+        try writer.print("\t\taxis3: {},\n", .{wr.pitch_count.axis3});
         try writer.writeAll("\t},\n");
         try writer.writeAll("}\n");
     }
@@ -974,24 +978,24 @@ pub const Ww = packed struct(u256) {
         writer: anytype,
     ) !void {
         try writer.writeAll("Ww: {\n");
-        _ = try writer.print("\tcommand_code: {},\n", .{ww.command_code});
-        _ = try writer.print(
+        try writer.print("\tcommand_code: {},\n", .{ww.command_code});
+        try writer.print(
             "\tcommand_slider_number: {},\n",
             .{ww.command_slider_number},
         );
-        _ = try writer.print(
+        try writer.print(
             "\ttarget_axis_number: {},\n",
             .{ww.target_axis_number},
         );
-        _ = try writer.print(
+        try writer.print(
             "\tlocation_distance: {},\n",
             .{ww.location_distance},
         );
-        _ = try writer.print(
+        try writer.print(
             "\tspeed_percentage: {},\n",
             .{ww.speed_percentage},
         );
-        _ = try writer.print(
+        try writer.print(
             "\tacceleration_percentage: {},\n",
             .{ww.acceleration_percentage},
         );
