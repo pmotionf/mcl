@@ -159,7 +159,7 @@ pub const Line = struct {
 
     /// Return the first station and local axis index found that holds the
     /// provided slider ID.
-    pub fn search(line: *const Line, slider_id: i16) !?struct { Station, u2 } {
+    pub fn search(line: *const Line, slider_id: u16) !?struct { Station, u2 } {
         var line_index: Line.Index = 0;
         for (line.ranges) |range| {
             for (0..range.connection.len()) |i| {

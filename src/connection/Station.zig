@@ -743,9 +743,9 @@ test "Y" {
 pub const Wr = packed struct(u256) {
     command_response: CommandResponseCode = .NoError,
     slider_number: packed struct(u48) {
-        axis1: i16 = 0,
-        axis2: i16 = 0,
-        axis3: i16 = 0,
+        axis1: u16 = 0,
+        axis2: u16 = 0,
+        axis3: u16 = 0,
     } = .{},
     slider_location: packed struct(u96) {
         axis1: Distance = .{},
@@ -858,7 +858,7 @@ pub const Wr = packed struct(u256) {
         ForwardCalibrationFault = 61,
     };
 
-    pub fn sliderNumber(self: Wr, axis_index: u2) i16 {
+    pub fn sliderNumber(self: Wr, axis_index: u2) u16 {
         return switch (axis_index) {
             0 => self.slider_number.axis1,
             1 => self.slider_number.axis2,
@@ -937,11 +937,11 @@ test "Wr" {
 /// register bank.
 pub const Ww = packed struct(u256) {
     command_code: CommandCode = .None,
-    command_slider_number: i16 = 0,
-    target_axis_number: i16 = 0,
+    command_slider_number: u16 = 0,
+    target_axis_number: u16 = 0,
     location_distance: Distance = .{},
-    speed_percentage: i16 = 0,
-    acceleration_percentage: i16 = 0,
+    speed_percentage: u16 = 0,
+    acceleration_percentage: u16 = 0,
     _112: u144 = 0,
 
     pub const CommandCode = enum(i16) {
