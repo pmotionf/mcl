@@ -147,7 +147,13 @@ pub const X = packed struct(u64) {
             0 => self.servo_active.axis1,
             1 => self.servo_active.axis2,
             2 => self.servo_active.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "servoActive: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -156,7 +162,13 @@ pub const X = packed struct(u64) {
             0 => self.axis_enabled.axis1,
             1 => self.axis_enabled.axis2,
             2 => self.axis_enabled.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "axisEnabled: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -165,7 +177,13 @@ pub const X = packed struct(u64) {
             0 => self.in_position.axis1,
             1 => self.in_position.axis2,
             2 => self.in_position.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "inPosition: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -174,7 +192,13 @@ pub const X = packed struct(u64) {
             0 => self.entered_front.axis1,
             1 => self.entered_front.axis2,
             2 => self.entered_front.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "enteredFront: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -183,7 +207,13 @@ pub const X = packed struct(u64) {
             0 => self.entered_back.axis1,
             1 => self.entered_back.axis2,
             2 => self.entered_back.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "enteredBack: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -206,7 +236,13 @@ pub const X = packed struct(u64) {
             0 => self.overcurrent_detected.axis1,
             1 => self.overcurrent_detected.axis2,
             2 => self.overcurrent_detected.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "overcurrentDetected: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -215,7 +251,13 @@ pub const X = packed struct(u64) {
             0 => self.control_failure.axis1,
             1 => self.control_failure.axis2,
             2 => self.control_failure.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "controlFailure: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -236,7 +278,13 @@ pub const X = packed struct(u64) {
                 .back = self.hall_alarm.axis3.back,
                 .front = self.hall_alarm.axis3.front,
             },
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "hallAlarm: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -245,7 +293,13 @@ pub const X = packed struct(u64) {
             0 => self.self_pause.axis1,
             1 => self.self_pause.axis2,
             2 => self.self_pause.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "selfPause: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -254,7 +308,13 @@ pub const X = packed struct(u64) {
             0 => self.pulling_slider.axis1,
             1 => self.pulling_slider.axis2,
             2 => self.pulling_slider.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "pullingSlider: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -275,7 +335,13 @@ pub const X = packed struct(u64) {
                 .back = self.hall_alarm_abnormal.axis3.back,
                 .front = self.hall_alarm_abnormal.axis3.front,
             },
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "hallAlarmAbnormal: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -296,7 +362,13 @@ pub const X = packed struct(u64) {
                 .backward = self.chain_enabled.axis3.backward,
                 .forward = self.chain_enabled.axis3.forward,
             },
-            else => unreachable,
+            else => {
+                std.log.err(
+                    "chainEnabled: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -526,7 +598,13 @@ pub const Y = packed struct(u64) {
             0 => self.reset_pull_slider.axis1,
             1 => self.reset_pull_slider.axis2,
             2 => self.reset_pull_slider.axis3,
-            else => unreachable,
+            else => {
+                std.log.err(
+                    "resetPullSlider: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         }
     }
 
@@ -541,7 +619,13 @@ pub const Y = packed struct(u64) {
             2 => {
                 self.*.reset_pull_slider.axis3 = value;
             },
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "setResetPullSlider: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         }
     }
 
@@ -562,7 +646,10 @@ pub const Y = packed struct(u64) {
                 .backward = self.link_chain.axis3.backward,
                 .forward = self.link_chain.axis3.forward,
             },
-            else => unreachable,
+            else => {
+                std.log.err("linkChain: Invalid axis index {}", .{axis_index});
+                unreachable;
+            },
         };
     }
 
@@ -589,7 +676,13 @@ pub const Y = packed struct(u64) {
                     )).backward = b;
                 }
             },
-            else => unreachable,
+            else => {
+                std.log.err(
+                    "setLinkChain: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         }
     }
 
@@ -610,7 +703,13 @@ pub const Y = packed struct(u64) {
                 .backward = self.unlink_chain.axis3.backward,
                 .forward = self.unlink_chain.axis3.forward,
             },
-            else => unreachable,
+            else => {
+                std.log.err(
+                    "unlinkChain: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -637,7 +736,13 @@ pub const Y = packed struct(u64) {
                     )).backward = b;
                 }
             },
-            else => unreachable,
+            else => {
+                std.log.err(
+                    "setUnlinkChain: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         }
     }
 
@@ -863,7 +968,13 @@ pub const Wr = packed struct(u256) {
             0 => self.slider_number.axis1,
             1 => self.slider_number.axis2,
             2 => self.slider_number.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "sliderNumber: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -872,7 +983,13 @@ pub const Wr = packed struct(u256) {
             0 => self.slider_location.axis1,
             1 => self.slider_location.axis2,
             2 => self.slider_location.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "sliderLocation: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -881,7 +998,13 @@ pub const Wr = packed struct(u256) {
             0 => self.slider_state.axis1,
             1 => self.slider_state.axis2,
             2 => self.slider_state.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "sliderState: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
@@ -890,7 +1013,13 @@ pub const Wr = packed struct(u256) {
             0 => self.pitch_count.axis1,
             1 => self.pitch_count.axis2,
             2 => self.pitch_count.axis3,
-            3 => unreachable,
+            3 => {
+                std.log.err(
+                    "pitchCount: Invalid axis index {}",
+                    .{axis_index},
+                );
+                unreachable;
+            },
         };
     }
 
