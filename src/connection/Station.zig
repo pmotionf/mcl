@@ -594,7 +594,7 @@ pub const Y = packed struct(u64) {
     _33: u31 = 0,
 
     pub fn resetPullSlider(self: Y, axis_index: u2) bool {
-        switch (axis_index) {
+        return switch (axis_index) {
             0 => self.reset_pull_slider.axis1,
             1 => self.reset_pull_slider.axis2,
             2 => self.reset_pull_slider.axis3,
@@ -605,7 +605,7 @@ pub const Y = packed struct(u64) {
                 );
                 unreachable;
             },
-        }
+        };
     }
 
     pub fn setResetPullSlider(self: *Y, axis_index: u2, value: bool) void {
