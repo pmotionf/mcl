@@ -18,15 +18,17 @@ const StationIndex = connection.Station.Index;
 pub const Station = struct {
     connection: connection.Channel.Index,
     line: *const Line = undefined,
+    index: Index = undefined,
+
     /// Index within configured line, spanning across connection ranges.
-    index: Line.Index = undefined,
+    pub const Index = u8;
 
     /// Inclusive range of stations in line. Each range only spans within one
     /// CC-Link connection channel.
     pub const Range = struct {
         connection: connection.Channel.Range,
-        start: Line.Index = undefined,
-        end: Line.Index = undefined,
+        start: Index = undefined,
+        end: Index = undefined,
         line: *const Line = undefined,
 
         pub fn len(range: Range) usize {
@@ -52,12 +54,14 @@ pub const Station = struct {
 };
 
 pub const Line = struct {
+    index: Index,
     /// Total number of axes in line.
     axes: u10,
     /// Ranges that make up line, in order from back to front.
     ranges: []Station.Range,
 
     pub const Index = u8;
+
     /// Inclusive index range of stations in line.
     pub const IndexRange = struct {
         start: Index,
@@ -246,22 +250,23 @@ pub fn init(system_lines: []const Line) !void {
     var ranges_offset: usize = 0;
     @memcpy(all_lines[0..system_lines.len], system_lines);
     lines = all_lines[0..system_lines.len];
-    for (system_lines, 0..) |line, line_counter| {
+    for (system_lines, 0..) |line, line_index| {
         const ranges_end: usize = ranges_offset + line.ranges.len;
         @memcpy(
             all_ranges[ranges_offset..ranges_end],
             line.ranges,
         );
-        all_lines[line_counter].ranges = all_ranges[ranges_offset..ranges_end];
+        all_lines[line_index].index = line_index;
+        all_lines[line_index].ranges = all_ranges[ranges_offset..ranges_end];
 
         var range_start: Line.Index = 0;
-        for (all_lines[line_counter].ranges) |*range| {
+        for (all_lines[line_index].ranges) |*range| {
             const range_len: Line.Index =
                 range.connection.indices.end - range.connection.indices.start;
             range.start = range_start;
             range.end = range_start + range_len;
             range_start += range_len + 1;
-            range.line = &all_lines[line_counter];
+            range.line = &all_lines[line_index];
         }
 
         ranges_offset += line.ranges.len;
