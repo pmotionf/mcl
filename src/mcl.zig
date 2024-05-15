@@ -256,7 +256,7 @@ pub fn init(system_lines: []const Line) !void {
             all_ranges[ranges_offset..ranges_end],
             line.ranges,
         );
-        all_lines[line_index].index = line_index;
+        all_lines[line_index].index = @intCast(line_index);
         all_lines[line_index].ranges = all_ranges[ranges_offset..ranges_end];
 
         var range_start: Line.Index = 0;
