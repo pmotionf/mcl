@@ -582,7 +582,7 @@ pub const Y = packed struct(u64) {
             };
         }
 
-        pub fn setAxis(self: @This(), local_axis: u2, val: bool) void {
+        pub fn setAxis(self: *@This(), local_axis: u2, val: bool) void {
             switch (local_axis) {
                 0 => self.axis1 = val,
                 1 => self.axis2 = val,
