@@ -171,7 +171,7 @@ pub const Line = struct {
                 const wr = try index.Wr();
                 for (0..3) |_j| {
                     const j: u2 = @intCast(_j);
-                    if (wr.sliderNumber(j) == slider_id) {
+                    if (wr.slider_number.axis(j) == slider_id) {
                         return .{ .{
                             .connection = index,
                             .index = line_index,

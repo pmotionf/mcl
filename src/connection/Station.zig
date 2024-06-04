@@ -41,6 +41,21 @@ pub const X = packed struct(u64) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `servo_active`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     servo_enabled: bool = false,
     emergency_stop_enabled: bool = false,
@@ -51,41 +66,142 @@ pub const X = packed struct(u64) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `axis_enabled`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     in_position: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err("Invalid axis index 3 for `in_position`", .{});
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     entered_front: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `entered_front`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     entered_back: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `entered_back`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     transmission_stopped: packed struct(u2) {
         from_prev: bool = false,
         from_next: bool = false,
+
+        pub fn from(self: @This(), dir: Direction) bool {
+            return switch (dir) {
+                .backward => self.from_prev,
+                .forward => self.from_next,
+            };
+        }
     } = .{},
     errors_cleared: bool = false,
     communication_error: packed struct(u2) {
         from_prev: bool = false,
         from_next: bool = false,
+
+        pub fn from(self: @This(), dir: Direction) bool {
+            return switch (dir) {
+                .backward => self.from_prev,
+                .forward => self.from_next,
+            };
+        }
     } = .{},
     inverter_overheat_detected: bool = false,
     overcurrent_detected: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `overcurrent_detected`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     control_failure: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `control_failure`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     hall_alarm: packed struct(u6) {
         axis1: packed struct(u2) {
@@ -100,16 +216,67 @@ pub const X = packed struct(u64) {
             back: bool = false,
             front: bool = false,
         } = .{},
+
+        pub fn axis(self: @This(), a: u2) packed struct(u2) {
+            back: bool,
+            front: bool,
+        } {
+            return switch (a) {
+                0 => .{
+                    .back = self.axis1.back,
+                    .front = self.axis1.front,
+                },
+                1 => .{
+                    .back = self.axis2.back,
+                    .front = self.axis2.front,
+                },
+                2 => .{
+                    .back = self.axis3.back,
+                    .front = self.axis3.front,
+                },
+                3 => {
+                    std.log.err("Invalid axis index 3 for `hall_alarm`", .{});
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     self_pause: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err("Invalid axis index 3 for `self_pause`", .{});
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     pulling_slider: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `pulling_slider`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     control_loop_max_time_exceeded: bool = false,
     hall_alarm_abnormal: packed struct(u6) {
@@ -125,6 +292,33 @@ pub const X = packed struct(u64) {
             back: bool = false,
             front: bool = false,
         } = .{},
+
+        pub fn axis(self: @This(), a: u2) packed struct(u2) {
+            back: bool,
+            front: bool,
+        } {
+            return switch (a) {
+                0 => .{
+                    .back = self.axis1.back,
+                    .front = self.axis1.front,
+                },
+                1 => .{
+                    .back = self.axis2.back,
+                    .front = self.axis2.front,
+                },
+                2 => .{
+                    .back = self.axis3.back,
+                    .front = self.axis3.front,
+                },
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `hall_alarm_abnormal`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     chain_enabled: packed struct(u6) {
         axis1: packed struct(u2) {
@@ -139,238 +333,35 @@ pub const X = packed struct(u64) {
             backward: bool = false,
             forward: bool = false,
         } = .{},
+
+        pub fn axis(self: @This(), a: u2) packed struct(u2) {
+            backward: bool,
+            forward: bool,
+        } {
+            return switch (a) {
+                0 => .{
+                    .backward = self.axis1.backward,
+                    .forward = self.axis1.forward,
+                },
+                1 => .{
+                    .backward = self.axis2.backward,
+                    .forward = self.axis2.forward,
+                },
+                2 => .{
+                    .backward = self.axis3.backward,
+                    .forward = self.axis3.forward,
+                },
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `chain_enabled`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     _60: u4 = 0,
-
-    pub fn servoActive(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.servo_active.axis1,
-            1 => self.servo_active.axis2,
-            2 => self.servo_active.axis3,
-            3 => {
-                std.log.err(
-                    "servoActive: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn axisEnabled(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.axis_enabled.axis1,
-            1 => self.axis_enabled.axis2,
-            2 => self.axis_enabled.axis3,
-            3 => {
-                std.log.err(
-                    "axisEnabled: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn inPosition(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.in_position.axis1,
-            1 => self.in_position.axis2,
-            2 => self.in_position.axis3,
-            3 => {
-                std.log.err(
-                    "inPosition: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn enteredFront(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.entered_front.axis1,
-            1 => self.entered_front.axis2,
-            2 => self.entered_front.axis3,
-            3 => {
-                std.log.err(
-                    "enteredFront: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn enteredBack(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.entered_back.axis1,
-            1 => self.entered_back.axis2,
-            2 => self.entered_back.axis3,
-            3 => {
-                std.log.err(
-                    "enteredBack: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn transmissionStopped(self: X, dir: Direction) bool {
-        return switch (dir) {
-            .backward => self.transmission_stopped.from_prev,
-            .forward => self.transmission_stopped.from_next,
-        };
-    }
-
-    pub fn communicationError(self: X, dir: Direction) bool {
-        return switch (dir) {
-            .backward => self.communication_error.from_prev,
-            .forward => self.communication_error.from_next,
-        };
-    }
-
-    pub fn overcurrentDetected(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.overcurrent_detected.axis1,
-            1 => self.overcurrent_detected.axis2,
-            2 => self.overcurrent_detected.axis3,
-            3 => {
-                std.log.err(
-                    "overcurrentDetected: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn controlFailure(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.control_failure.axis1,
-            1 => self.control_failure.axis2,
-            2 => self.control_failure.axis3,
-            3 => {
-                std.log.err(
-                    "controlFailure: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn hallAlarm(self: X, axis_index: u2) struct {
-        back: bool,
-        front: bool,
-    } {
-        return switch (axis_index) {
-            0 => .{
-                .back = self.hall_alarm.axis1.back,
-                .front = self.hall_alarm.axis1.front,
-            },
-            1 => .{
-                .back = self.hall_alarm.axis2.back,
-                .front = self.hall_alarm.axis2.front,
-            },
-            2 => .{
-                .back = self.hall_alarm.axis3.back,
-                .front = self.hall_alarm.axis3.front,
-            },
-            3 => {
-                std.log.err(
-                    "hallAlarm: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn selfPause(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.self_pause.axis1,
-            1 => self.self_pause.axis2,
-            2 => self.self_pause.axis3,
-            3 => {
-                std.log.err(
-                    "selfPause: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn pullingSlider(self: X, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.pulling_slider.axis1,
-            1 => self.pulling_slider.axis2,
-            2 => self.pulling_slider.axis3,
-            3 => {
-                std.log.err(
-                    "pullingSlider: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn hallAlarmAbnormal(self: X, axis_index: u2) struct {
-        back: bool,
-        front: bool,
-    } {
-        return switch (axis_index) {
-            0 => .{
-                .back = self.hall_alarm_abnormal.axis1.back,
-                .front = self.hall_alarm_abnormal.axis1.front,
-            },
-            1 => .{
-                .back = self.hall_alarm_abnormal.axis2.back,
-                .front = self.hall_alarm_abnormal.axis2.front,
-            },
-            2 => .{
-                .back = self.hall_alarm_abnormal.axis3.back,
-                .front = self.hall_alarm_abnormal.axis3.front,
-            },
-            3 => {
-                std.log.err(
-                    "hallAlarmAbnormal: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn chainEnabled(self: X, axis_index: u2) struct {
-        backward: bool,
-        forward: bool,
-    } {
-        return switch (axis_index) {
-            0 => .{
-                .backward = self.chain_enabled.axis1.backward,
-                .forward = self.chain_enabled.axis1.forward,
-            },
-            1 => .{
-                .backward = self.chain_enabled.axis2.backward,
-                .forward = self.chain_enabled.axis2.forward,
-            },
-            2 => .{
-                .backward = self.chain_enabled.axis3.backward,
-                .forward = self.chain_enabled.axis3.forward,
-            },
-            else => {
-                std.log.err(
-                    "chainEnabled: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
 
     pub fn format(
         x: X,
@@ -472,10 +463,13 @@ pub const X = packed struct(u64) {
         for (0..3) |_i| {
             const i: u2 = @intCast(_i);
             try writer.print("\t\taxis{}: {{\n", .{i + 1});
-            try writer.print("\t\t\tback: {},\n", .{x.hallAlarm(i).back});
+            try writer.print(
+                "\t\t\tback: {},\n",
+                .{x.hall_alarm.axis(i).back},
+            );
             try writer.print(
                 "\t\t\tfront: {},\n",
-                .{x.hallAlarm(i).front},
+                .{x.hall_alarm.axis(i).front},
             );
             try writer.writeAll("\t\t},\n");
         }
@@ -500,11 +494,11 @@ pub const X = packed struct(u64) {
             try writer.print("\t\taxis{}: {{\n", .{i + 1});
             try writer.print(
                 "\t\t\tback: {},\n",
-                .{x.hallAlarmAbnormal(i).back},
+                .{x.hall_alarm_abnormal.axis(i).back},
             );
             try writer.print(
                 "\t\t\tfront: {},\n",
-                .{x.hallAlarmAbnormal(i).front},
+                .{x.hall_alarm_abnormal.axis(i).front},
             );
             try writer.writeAll("\t\t},\n");
         }
@@ -516,11 +510,11 @@ pub const X = packed struct(u64) {
             try writer.print("\t\taxis{}: {{\n", .{i + 1});
             try writer.print(
                 "\t\t\tback: {},\n",
-                .{x.chainEnabled(i).backward},
+                .{x.chain_enabled.axis(i).backward},
             );
             try writer.print(
                 "\t\t\tfront: {},\n",
-                .{x.chainEnabled(i).forward},
+                .{x.chain_enabled.axis(i).forward},
             );
             try writer.writeAll("\t\t},\n");
         }
@@ -548,6 +542,20 @@ pub const Y = packed struct(u64) {
     stop_driver_transmission: packed struct(u2) {
         from_prev: bool = false,
         from_next: bool = false,
+
+        pub fn from(self: @This(), dir: Direction) bool {
+            return switch (dir) {
+                .backward => self.from_prev,
+                .forward => self.from_next,
+            };
+        }
+
+        pub fn setFrom(self: *@This(), dir: Direction, val: bool) void {
+            switch (dir) {
+                .backward => self.from_prev = val,
+                .forward => self.from_next = val,
+            }
+        }
     } = .{},
     clear_errors: bool = false,
     clear_axis_slider_info: bool = false,
@@ -558,10 +566,54 @@ pub const Y = packed struct(u64) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
+
+        pub fn axis(self: @This(), local_axis: u2) bool {
+            return switch (local_axis) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `reset_pull_slider`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+
+        pub fn setAxis(self: @This(), local_axis: u2, val: bool) void {
+            switch (local_axis) {
+                0 => self.axis1 = val,
+                1 => self.axis2 = val,
+                2 => self.axis3 = val,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `reset_pull_slider`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            }
+        }
     } = .{},
     recovery_use_hall_sensor: packed struct(u2) {
         back: bool = false,
         front: bool = false,
+
+        pub fn side(self: @This(), dir: Direction) bool {
+            return switch (dir) {
+                .backward => self.back,
+                .forward => self.front,
+            };
+        }
+
+        pub fn setSide(self: *@This(), dir: Direction, val: bool) void {
+            switch (dir) {
+                .backward => self.back = val,
+                .forward => self.front = val,
+            }
+        }
     } = .{},
     link_chain: packed struct(u6) {
         axis1: packed struct(u2) {
@@ -576,6 +628,66 @@ pub const Y = packed struct(u64) {
             backward: bool = false,
             forward: bool = false,
         } = .{},
+
+        pub fn axis(self: @This(), a: u2) packed struct(u2) {
+            backward: bool,
+            forward: bool,
+        } {
+            return switch (a) {
+                0 => .{
+                    .backward = self.axis1.backward,
+                    .forward = self.axis1.forward,
+                },
+                1 => .{
+                    .backward = self.axis2.backward,
+                    .forward = self.axis2.forward,
+                },
+                2 => .{
+                    .backward = self.axis3.backward,
+                    .forward = self.axis3.forward,
+                },
+                3 => {
+                    std.log.err("Invalid axis index 3 for `link_chain`", .{});
+                    unreachable;
+                },
+            };
+        }
+
+        pub fn setAxis(self: *@This(), a: u2, val: packed struct(u2) {
+            backward: ?bool = null,
+            forward: ?bool = null,
+        }) void {
+            switch (a) {
+                0 => {
+                    if (val.backward) |b| {
+                        self.axis1.backward = b;
+                    }
+                    if (val.forward) |f| {
+                        self.axis1.forward = f;
+                    }
+                },
+                1 => {
+                    if (val.backward) |b| {
+                        self.axis2.backward = b;
+                    }
+                    if (val.forward) |f| {
+                        self.axis2.forward = f;
+                    }
+                },
+                2 => {
+                    if (val.backward) |b| {
+                        self.axis3.backward = b;
+                    }
+                    if (val.forward) |f| {
+                        self.axis3.forward = f;
+                    }
+                },
+                3 => {
+                    std.log.err("Invalid axis index 3 for `link_chain`", .{});
+                    unreachable;
+                },
+            }
+        }
     } = .{},
     unlink_chain: packed struct(u6) {
         axis1: packed struct(u2) {
@@ -590,161 +702,74 @@ pub const Y = packed struct(u64) {
             backward: bool = false,
             forward: bool = false,
         } = .{},
+
+        pub fn axis(self: @This(), a: u2) packed struct(u2) {
+            backward: bool,
+            forward: bool,
+        } {
+            return switch (a) {
+                0 => .{
+                    .backward = self.axis1.backward,
+                    .forward = self.axis1.forward,
+                },
+                1 => .{
+                    .backward = self.axis2.backward,
+                    .forward = self.axis2.forward,
+                },
+                2 => .{
+                    .backward = self.axis3.backward,
+                    .forward = self.axis3.forward,
+                },
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `unlink_chain`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+
+        pub fn setAxis(self: *@This(), a: u2, val: packed struct(u2) {
+            backward: ?bool = null,
+            forward: ?bool = null,
+        }) void {
+            switch (a) {
+                0 => {
+                    if (val.backward) |b| {
+                        self.axis1.backward = b;
+                    }
+                    if (val.forward) |f| {
+                        self.axis1.forward = f;
+                    }
+                },
+                1 => {
+                    if (val.backward) |b| {
+                        self.axis2.backward = b;
+                    }
+                    if (val.forward) |f| {
+                        self.axis2.forward = f;
+                    }
+                },
+                2 => {
+                    if (val.backward) |b| {
+                        self.axis3.backward = b;
+                    }
+                    if (val.forward) |f| {
+                        self.axis3.forward = f;
+                    }
+                },
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `unlink_chain`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            }
+        }
     } = .{},
     _33: u31 = 0,
-
-    pub fn resetPullSlider(self: Y, axis_index: u2) bool {
-        return switch (axis_index) {
-            0 => self.reset_pull_slider.axis1,
-            1 => self.reset_pull_slider.axis2,
-            2 => self.reset_pull_slider.axis3,
-            else => {
-                std.log.err(
-                    "resetPullSlider: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn setResetPullSlider(self: *Y, axis_index: u2, value: bool) void {
-        switch (axis_index) {
-            0 => {
-                self.*.reset_pull_slider.axis1 = value;
-            },
-            1 => {
-                self.*.reset_pull_slider.axis2 = value;
-            },
-            2 => {
-                self.*.reset_pull_slider.axis3 = value;
-            },
-            3 => {
-                std.log.err(
-                    "setResetPullSlider: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        }
-    }
-
-    pub fn linkChain(self: Y, axis_index: u2) struct {
-        backward: bool,
-        forward: bool,
-    } {
-        return switch (axis_index) {
-            0 => .{
-                .backward = self.link_chain.axis1.backward,
-                .forward = self.link_chain.axis1.forward,
-            },
-            1 => .{
-                .backward = self.link_chain.axis2.backward,
-                .forward = self.link_chain.axis2.forward,
-            },
-            2 => .{
-                .backward = self.link_chain.axis3.backward,
-                .forward = self.link_chain.axis3.forward,
-            },
-            else => {
-                std.log.err("linkChain: Invalid axis index {}", .{axis_index});
-                unreachable;
-            },
-        };
-    }
-
-    pub fn setLinkChain(
-        self: *Y,
-        axis_index: u2,
-        val: struct {
-            forward: ?bool = null,
-            backward: ?bool = null,
-        },
-    ) void {
-        switch (axis_index) {
-            inline 0...3 => |num| {
-                if (val.forward) |f| {
-                    (@field(
-                        self.*.link_chain,
-                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
-                    )).forward = f;
-                }
-                if (val.backward) |b| {
-                    (@field(
-                        self.*.link_chain,
-                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
-                    )).backward = b;
-                }
-            },
-            else => {
-                std.log.err(
-                    "setLinkChain: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        }
-    }
-
-    pub fn unlinkChain(self: Y, axis_index: u2) struct {
-        backward: bool,
-        forward: bool,
-    } {
-        return switch (axis_index) {
-            0 => .{
-                .backward = self.unlink_chain.axis1.backward,
-                .forward = self.unlink_chain.axis1.forward,
-            },
-            1 => .{
-                .backward = self.unlink_chain.axis2.backward,
-                .forward = self.unlink_chain.axis2.forward,
-            },
-            2 => .{
-                .backward = self.unlink_chain.axis3.backward,
-                .forward = self.unlink_chain.axis3.forward,
-            },
-            else => {
-                std.log.err(
-                    "unlinkChain: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn setUnlinkChain(
-        self: *Y,
-        axis_index: u2,
-        val: struct {
-            forward: ?bool = null,
-            backward: ?bool = null,
-        },
-    ) void {
-        switch (axis_index) {
-            inline 0...3 => |num| {
-                if (val.forward) |f| {
-                    (@field(
-                        self.*.unlink_chain,
-                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
-                    )).forward = f;
-                }
-                if (val.backward) |b| {
-                    (@field(
-                        self.*.unlink_chain,
-                        std.fmt.comptimePrint("axis{d}", .{num + 1}),
-                    )).backward = b;
-                }
-            },
-            else => {
-                std.log.err(
-                    "setUnlinkChain: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        }
-    }
 
     pub fn format(
         y: Y,
@@ -812,11 +837,11 @@ pub const Y = packed struct(u64) {
             try writer.print("\t\taxis{}: {{\n", .{i + 1});
             try writer.print(
                 "\t\t\tbackward: {},\n",
-                .{y.linkChain(i).backward},
+                .{y.link_chain.axis(i).backward},
             );
             try writer.print(
                 "\t\t\tforward: {},\n",
-                .{y.linkChain(i).forward},
+                .{y.link_chain.axis(i).forward},
             );
             try writer.writeAll("\t\t},\n");
         }
@@ -827,11 +852,11 @@ pub const Y = packed struct(u64) {
             try writer.print("\t\taxis{}: {{\n", .{i + 1});
             try writer.print(
                 "\t\t\tbackward: {},\n",
-                .{y.unlinkChain(i).backward},
+                .{y.unlink_chain.axis(i).backward},
             );
             try writer.print(
                 "\t\t\tforward: {},\n",
-                .{y.unlinkChain(i).forward},
+                .{y.unlink_chain.axis(i).forward},
             );
             try writer.writeAll("\t\t},\n");
         }
@@ -851,21 +876,81 @@ pub const Wr = packed struct(u256) {
         axis1: u16 = 0,
         axis2: u16 = 0,
         axis3: u16 = 0,
+
+        pub fn axis(self: @This(), a: u2) u16 {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `slider_number`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     slider_location: packed struct(u96) {
         axis1: Distance = .{},
         axis2: Distance = .{},
         axis3: Distance = .{},
+
+        pub fn axis(self: @This(), a: u2) Distance {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `slider_location`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     slider_state: packed struct(u48) {
         axis1: SliderStateCode = .None,
         axis2: SliderStateCode = .None,
         axis3: SliderStateCode = .None,
+
+        pub fn axis(self: @This(), a: u2) SliderStateCode {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `slider_state`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
     pitch_count: packed struct(u48) {
         axis1: i16 = 0,
         axis2: i16 = 0,
         axis3: i16 = 0,
+
+        pub fn axis(self: @This(), a: u2) i16 {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `pitch_count`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
     } = .{},
 
     pub const CommandResponseCode = enum(i16) {
@@ -962,66 +1047,6 @@ pub const Wr = packed struct(u256) {
         BackwardCalibrationFault = 60,
         ForwardCalibrationFault = 61,
     };
-
-    pub fn sliderNumber(self: Wr, axis_index: u2) u16 {
-        return switch (axis_index) {
-            0 => self.slider_number.axis1,
-            1 => self.slider_number.axis2,
-            2 => self.slider_number.axis3,
-            3 => {
-                std.log.err(
-                    "sliderNumber: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn sliderLocation(self: Wr, axis_index: u2) Distance {
-        return switch (axis_index) {
-            0 => self.slider_location.axis1,
-            1 => self.slider_location.axis2,
-            2 => self.slider_location.axis3,
-            3 => {
-                std.log.err(
-                    "sliderLocation: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn sliderState(self: Wr, axis_index: u2) SliderStateCode {
-        return switch (axis_index) {
-            0 => self.slider_state.axis1,
-            1 => self.slider_state.axis2,
-            2 => self.slider_state.axis3,
-            3 => {
-                std.log.err(
-                    "sliderState: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
-
-    pub fn pitchCount(self: Wr, axis_index: u2) i16 {
-        return switch (axis_index) {
-            0 => self.pitch_count.axis1,
-            1 => self.pitch_count.axis2,
-            2 => self.pitch_count.axis3,
-            3 => {
-                std.log.err(
-                    "pitchCount: Invalid axis index {}",
-                    .{axis_index},
-                );
-                unreachable;
-            },
-        };
-    }
 
     pub fn format(
         wr: Wr,
