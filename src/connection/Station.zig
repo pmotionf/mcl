@@ -550,7 +550,11 @@ pub const Y = packed struct(u64) {
             };
         }
 
-        pub fn setFrom(self: *@This(), dir: Direction, val: bool) void {
+        pub fn setFrom(
+            self: *align(8:9:8) @This(),
+            dir: Direction,
+            val: bool,
+        ) void {
             switch (dir) {
                 .backward => self.from_prev = val,
                 .forward => self.from_next = val,
@@ -582,7 +586,11 @@ pub const Y = packed struct(u64) {
             };
         }
 
-        pub fn setAxis(self: *@This(), local_axis: u2, val: bool) void {
+        pub fn setAxis(
+            self: *align(8:16:8) @This(),
+            local_axis: u2,
+            val: bool,
+        ) void {
             switch (local_axis) {
                 0 => self.axis1 = val,
                 1 => self.axis2 = val,
@@ -608,7 +616,11 @@ pub const Y = packed struct(u64) {
             };
         }
 
-        pub fn setSide(self: *@This(), dir: Direction, val: bool) void {
+        pub fn setSide(
+            self: *align(8:19:8) @This(),
+            dir: Direction,
+            val: bool,
+        ) void {
             switch (dir) {
                 .backward => self.back = val,
                 .forward => self.front = val,
@@ -653,7 +665,7 @@ pub const Y = packed struct(u64) {
             };
         }
 
-        pub fn setAxis(self: *@This(), a: u2, val: packed struct(u2) {
+        pub fn setAxis(self: *align(8:21:8) @This(), a: u2, val: struct {
             backward: ?bool = null,
             forward: ?bool = null,
         }) void {
@@ -730,7 +742,7 @@ pub const Y = packed struct(u64) {
             };
         }
 
-        pub fn setAxis(self: *@This(), a: u2, val: packed struct(u2) {
+        pub fn setAxis(self: *align(8:27:8) @This(), a: u2, val: struct {
             backward: ?bool = null,
             forward: ?bool = null,
         }) void {
