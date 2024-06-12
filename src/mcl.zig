@@ -43,7 +43,7 @@ pub fn init(config: Config) void {
 
     used_channels = .{false} ** 4;
 
-    for (config.lines, 0..) |line, i| {
+    for (config.lines, 0..) |line, line_idx| {
         var num_stations: usize = 0;
 
         for (line.ranges, 0..) |range, range_i| {
@@ -64,8 +64,8 @@ pub fn init(config: Config) void {
                     std.mem.zeroes(Station.Wr);
                 all_ww[stations_offset..][num_stations] =
                     std.mem.zeroes(Station.Ww);
-                all_stations[i] = .{
-                    .line = &all_lines[i],
+                all_stations[stations_offset..][num_stations] = .{
+                    .line = &all_lines[line_idx],
                     .index = @intCast(num_stations),
                     .x = &all_x[stations_offset..][num_stations],
                     .y = &all_y[stations_offset..][num_stations],
@@ -82,10 +82,10 @@ pub fn init(config: Config) void {
         defer ranges_offset += line.ranges.len;
         defer stations_offset += num_stations;
 
-        all_lines[i] = .{
-            .index = @intCast(i),
+        all_lines[line_idx] = .{
+            .index = @intCast(line_idx),
             .axes = line.axes,
-            .stations = undefined,
+            .stations = all_stations[stations_offset..][0..num_stations],
             .x = all_x[stations_offset..][0..num_stations],
             .y = all_y[stations_offset..][0..num_stations],
             .wr = all_wr[stations_offset..][0..num_stations],
