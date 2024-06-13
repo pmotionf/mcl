@@ -4,8 +4,8 @@
     .minimum_zig_version = "0.14.0-dev.15+d4bc64038",
     .dependencies = .{
         .mdfunc = .{
-            .url = "https://github.com/pmotionf/mdfunc.zig/archive/5f05013.tar.gz",
-            .hash = "12207bf377ff4309b70e8b3fc00ad799dc8d0a525c1cbbcbe0fe32cadee6fe36f1a2",
+            .url = "https://github.com/pmotionf/mdfunc.zig/archive/ed20c27.tar.gz",
+            .hash = "122084e9d543d7458b213086c17650fc665756092adc7dcde13a69edb18068d94033",
         },
     },
     .paths = .{
