@@ -24,6 +24,7 @@ pub const Axis = struct {
 
 line: *const Line = undefined,
 index: Index = undefined,
+id: Id = undefined,
 
 x: *X = undefined,
 y: *Y = undefined,

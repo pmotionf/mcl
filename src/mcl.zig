@@ -67,6 +67,7 @@ pub fn init(config: Config) void {
                 all_stations[stations_offset..][num_stations] = .{
                     .line = &all_lines[line_idx],
                     .index = @intCast(num_stations),
+                    .id = @intCast(num_stations + 1),
                     .x = &all_x[stations_offset..][num_stations],
                     .y = &all_y[stations_offset..][num_stations],
                     .wr = &all_wr[stations_offset..][num_stations],
@@ -84,6 +85,7 @@ pub fn init(config: Config) void {
 
         all_lines[line_idx] = .{
             .index = @intCast(line_idx),
+            .id = @intCast(line_idx + 1),
             .axes = line.axes,
             .stations = all_stations[stations_offset..][0..num_stations],
             .x = all_x[stations_offset..][0..num_stations],

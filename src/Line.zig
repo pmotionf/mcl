@@ -21,6 +21,7 @@ pub const ConnectionRange = struct {
 };
 
 index: Index,
+id: Id,
 
 /// Total number of axes in line.
 axes: Axis.Id,
