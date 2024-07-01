@@ -100,8 +100,8 @@ pub fn init(config: Config) void {
 
 /// Stop traffic transmission between drivers when a slider is between two
 /// stations and must move in a direction. If traffic transmission is stopped,
-/// the station and direction from which transmission was stopped is returned
-/// as a tuple.
+/// the station and direction to which transmission was stopped is returned as
+/// a tuple.
 pub fn stopTrafficTransmission(
     back: Station,
     front: Station,
@@ -116,12 +116,15 @@ pub fn stopTrafficTransmission(
     if (back_slider != front_slider) return null;
 
     if (dir == .backward) {
+        // If back is auxiliary, then front is sending traffic to back.
         if (back_state == .NextAxisAuxiliary or
             back_state == .NextAxisCompleted or back_state == .None)
         {
             try front.setY(0x9);
             return .{ front, .backward };
-        } else if (front_state == .PrevAxisAuxiliary or
+        }
+        // If front is auxiliary, then back is sending traffic to front.
+        else if (front_state == .PrevAxisAuxiliary or
             front_state == .PrevAxisCompleted or front_state == .None)
         {
             try back.setY(0xA);
@@ -130,6 +133,7 @@ pub fn stopTrafficTransmission(
     }
     // dir == .forward
     else {
+        // TODO: Check why prev station is involved
         if ((front_state == .PrevAxisAuxiliary or
             front_state == .PrevAxisCompleted) and back.index > 0)
         {

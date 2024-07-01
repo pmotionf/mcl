@@ -112,25 +112,25 @@ pub const X = packed struct(u64) {
         }
     } = .{},
     transmission_stopped: packed struct(u2) {
-        from_prev: bool = false,
-        from_next: bool = false,
+        to_prev: bool = false,
+        to_next: bool = false,
 
-        pub fn from(self: @This(), dir: Direction) bool {
+        pub fn to(self: @This(), dir: Direction) bool {
             return switch (dir) {
-                .backward => self.from_prev,
-                .forward => self.from_next,
+                .backward => self.to_prev,
+                .forward => self.to_next,
             };
         }
     } = .{},
     errors_cleared: bool = false,
     communication_error: packed struct(u2) {
-        from_prev: bool = false,
-        from_next: bool = false,
+        to_prev: bool = false,
+        to_next: bool = false,
 
-        pub fn from(self: @This(), dir: Direction) bool {
+        pub fn to(self: @This(), dir: Direction) bool {
             return switch (dir) {
-                .backward => self.from_prev,
-                .forward => self.from_next,
+                .backward => self.to_prev,
+                .forward => self.to_next,
             };
         }
     } = .{},
@@ -389,23 +389,23 @@ pub const X = packed struct(u64) {
         try writer.writeAll("\t},\n");
         try writer.writeAll("\ttransmission_stopped: {\n");
         try writer.print(
-            "\t\tfrom_prev: {},\n",
-            .{x.transmission_stopped.from_prev},
+            "\t\tto_prev: {},\n",
+            .{x.transmission_stopped.to_prev},
         );
         try writer.print(
-            "\t\tfrom_next: {},\n",
-            .{x.transmission_stopped.from_next},
+            "\t\tto_next: {},\n",
+            .{x.transmission_stopped.to_next},
         );
         try writer.writeAll("\t},\n");
         try writer.print("\terrors_cleared: {},\n", .{x.errors_cleared});
         try writer.writeAll("\tcommunication_error: {\n");
         try writer.print(
-            "\t\tfrom_prev: {},\n",
-            .{x.communication_error.from_prev},
+            "\t\tto_prev: {},\n",
+            .{x.communication_error.to_prev},
         );
         try writer.print(
-            "\t\tfrom_next: {},\n",
-            .{x.communication_error.from_next},
+            "\t\tto_next: {},\n",
+            .{x.communication_error.to_next},
         );
         try writer.writeAll("\t},\n");
         try writer.print(

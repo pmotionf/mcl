@@ -16,24 +16,24 @@ pub const Y = packed struct(u64) {
     emergency_stop: bool = false,
     temporary_pause: bool = false,
     stop_driver_transmission: packed struct(u2) {
-        from_prev: bool = false,
-        from_next: bool = false,
+        to_prev: bool = false,
+        to_next: bool = false,
 
-        pub fn from(self: @This(), dir: Direction) bool {
+        pub fn to(self: @This(), dir: Direction) bool {
             return switch (dir) {
-                .backward => self.from_prev,
-                .forward => self.from_next,
+                .backward => self.to_prev,
+                .forward => self.to_next,
             };
         }
 
-        pub fn setFrom(
+        pub fn setTo(
             self: *align(8:9:8) @This(),
             dir: Direction,
             val: bool,
         ) void {
             switch (dir) {
-                .backward => self.from_prev = val,
-                .forward => self.from_next = val,
+                .backward => self.to_prev = val,
+                .forward => self.to_next = val,
             }
         }
     } = .{},
@@ -282,12 +282,12 @@ pub const Y = packed struct(u64) {
         try writer.print("\ttemporary_pause: {},\n", .{y.temporary_pause});
         try writer.writeAll("\tstop_driver_transmission: {\n");
         try writer.print(
-            "\t\tfrom_prev: {},\n",
-            .{y.stop_driver_transmission.from_prev},
+            "\t\tto_prev: {},\n",
+            .{y.stop_driver_transmission.to_prev},
         );
         try writer.print(
-            "\t\tfrom_next: {},\n",
-            .{y.stop_driver_transmission.from_next},
+            "\t\tto_next: {},\n",
+            .{y.stop_driver_transmission.to_next},
         );
         try writer.writeAll("\t},\n");
         try writer.print("\tclear_errors: {},\n", .{y.clear_errors});
