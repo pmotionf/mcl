@@ -105,7 +105,6 @@ pub fn init(config: Config) void {
 pub fn stopTrafficTransmission(
     back: Station,
     front: Station,
-    dir: Direction,
 ) !?struct { Station, Direction } {
     const back_slider = back.wr.slider_number.axis3;
     const front_slider = front.wr.slider_number.axis1;
@@ -115,38 +114,21 @@ pub fn stopTrafficTransmission(
 
     if (back_slider != front_slider) return null;
 
-    if (dir == .backward) {
-        // If back is auxiliary, then front is sending traffic to back.
-        if (back_state == .NextAxisAuxiliary or
-            back_state == .NextAxisCompleted or back_state == .None)
-        {
-            try front.setY(0x9);
-            return .{ front, .backward };
-        }
-        // If front is auxiliary, then back is sending traffic to front.
-        else if (front_state == .PrevAxisAuxiliary or
-            front_state == .PrevAxisCompleted or front_state == .None)
-        {
-            try back.setY(0xA);
-            return .{ back, .forward };
-        }
+    // If back is auxiliary, then front is sending traffic to back.
+    if (back_state == .NextAxisAuxiliary or
+        back_state == .NextAxisCompleted or back_state == .None)
+    {
+        try front.setY(0x9);
+        return .{ front, .backward };
     }
-    // dir == .forward
-    else {
-        // TODO: Check why prev station is involved
-        if ((front_state == .PrevAxisAuxiliary or
-            front_state == .PrevAxisCompleted) and back.index > 0)
-        {
-            const prev_station = back.prev().?;
-            try prev_station.setY(0xA);
-            return .{ prev_station, .forward };
-        } else if (back_state == .NextAxisAuxiliary or
-            back_state == .NextAxisCompleted)
-        {
-            try back.setY(0x9);
-            return .{ back, .backward };
-        }
+    // If front is auxiliary, then back is sending traffic to front.
+    else if (front_state == .PrevAxisAuxiliary or
+        front_state == .PrevAxisCompleted or front_state == .None)
+    {
+        try back.setY(0xA);
+        return .{ back, .forward };
     }
+
     return null;
 }
 
