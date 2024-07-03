@@ -308,7 +308,6 @@ pub const Y = packed struct(u64) {
         try writer.print("\t\taxis2: {},\n", .{y.reset_pull_slider.axis2});
         try writer.print("\t\taxis3: {},\n", .{y.reset_pull_slider.axis3});
         try writer.writeAll("\t},\n");
-        try writer.writeAll("}\n");
         try writer.writeAll("\trecovery_use_hall_sensor: {\n");
         try writer.print(
             "\t\tback: {},\n",
@@ -349,6 +348,7 @@ pub const Y = packed struct(u64) {
             try writer.writeAll("\t\t},\n");
         }
         try writer.writeAll("\t},\n");
+        try writer.writeAll("}\n");
     }
 };
 
