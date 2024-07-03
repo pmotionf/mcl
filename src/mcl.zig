@@ -1,8 +1,9 @@
 const std = @import("std");
 const mdfunc = @import("mdfunc");
 const v = @import("version");
-const registers = @import("registers.zig");
-const connection = @import("connection.zig");
+
+pub const registers = @import("registers.zig");
+pub const connection = @import("connection.zig");
 
 pub const Config = @import("Config.zig");
 pub const Station = @import("Station.zig");
