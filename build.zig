@@ -37,4 +37,16 @@ pub fn build(b: *std.Build) !void {
             .{ .name = "mdfunc", .module = mdfunc.module("mdfunc") },
         },
     });
+
+    const unit_tests = b.addTest(.{
+        .root_source_file = b.path("src/mcl.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unit_tests.root_module.addImport("version", version);
+    unit_tests.root_module.addImport("mdfunc", mdfunc.module("mdfunc"));
+
+    const run_unit_tests = b.addRunArtifact(unit_tests);
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_unit_tests.step);
 }

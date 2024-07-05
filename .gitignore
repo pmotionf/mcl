@@ -9,6 +9,7 @@
 !.gitignore
 !build.zig
 !build.zig.zon
+!.github/**
 
 !*.zig
 
