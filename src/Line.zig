@@ -254,22 +254,66 @@ pub fn sendWw(line: Line) (connection.Error || mdfunc.Error)!void {
     }
 }
 
-/// Return the first station and local axis index found that holds the
-/// provided slider ID.
+/// Return the axis of the specified slider, if found in the system. If the
+/// slider is split across two axes, then the auxiliary axis will be included
+/// in the result tuple.
 pub fn search(line: *const Line, slider_id: u16) !?struct {
-    Station,
-    Station.Axis.Index,
+    GlobalAxis,
+    ?GlobalAxis,
 } {
-    var total_axes: Line.Axis.Id = 0;
-    for (line.stations) |station| {
-        for (0..3) |_axis| {
-            if (total_axes == line.axes.len) break;
-            const axis: Station.Axis.Index = @intCast(_axis);
-            if (station.wr.slider_number.axis(axis) == slider_id) {
-                return .{ station, axis };
+    var result: struct { GlobalAxis, ?GlobalAxis } = .{ undefined, null };
+
+    for (line.axes) |axis| {
+        const station = axis.station.ptr;
+        const wr = station.wr;
+        if (wr.slider_number.axis(axis.station.index) == slider_id) {
+            result.@"0" = axis;
+
+            if (axis.station.index == 2 and axis.line.id < line.axes.len) {
+                const next_axis = line.axes[axis.line.index + 1];
+                const next_station = next_axis.station.ptr;
+                const next_wr = next_station.wr;
+
+                if (next_wr.slider_number.axis(next_axis.station.index) == slider_id) {
+                    result.@"1" = next_axis;
+                }
             }
-            total_axes += 1;
+
+            break;
+        }
+    } else {
+        return null;
+    }
+
+    // If there are two detected contiguous axes, determine which is primary
+    // and auxiliary.
+    if (result.@"1") |*aux| {
+        const main: *GlobalAxis = &result.@"0";
+        const station = main.station.ptr;
+        const wr = station.wr;
+        const state = wr.slider_state.axis(main.station.index);
+        if (state == .NextAxisAuxiliary or state == .NextAxisCompleted or
+            state == .PrevAxisAuxiliary or state == .PrevAxisCompleted)
+        {
+            const temp = main.*;
+            main.* = aux.*;
+            aux.* = temp;
+        } else if (state == .None) {
+            const aux_station: *const Station = aux.station.ptr;
+            const aux_wr = aux_station.wr;
+            const aux_state = aux_wr.slider_state.axis(aux.station.index);
+            if (aux_state != .None and
+                aux_state != .NextAxisAuxiliary and
+                aux_state != .NextAxisCompleted and
+                aux_state != .PrevAxisAuxiliary and
+                aux_state != .PrevAxisCompleted)
+            {
+                const temp = main.*;
+                main.* = aux.*;
+                aux.* = temp;
+            }
         }
     }
-    return null;
+
+    return result;
 }
