@@ -15,14 +15,14 @@ pub const Ww = registers.Ww;
 pub const Index = std.math.IntFittingRange(0, 64 * 4 - 1);
 pub const Id = std.math.IntFittingRange(1, 64 * 4);
 
-line: *const Line = undefined,
-index: Index = undefined,
-id: Id = undefined,
+line: *const Line,
+index: Index,
+id: Id,
 
-x: *X = undefined,
-y: *Y = undefined,
-wr: *Wr = undefined,
-ww: *Ww = undefined,
+x: *X,
+y: *Y,
+wr: *Wr,
+ww: *Ww,
 
 connection: struct {
     channel: connection.Channel,

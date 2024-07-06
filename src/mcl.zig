@@ -13,114 +13,42 @@ pub const Line = @import("Line.zig");
 pub const version: std.SemanticVersion =
     std.SemanticVersion.parse(v.mcl_version) catch unreachable;
 
-pub var lines: []const Line = undefined;
+pub var lines: []const Line = &.{};
+
+// Identical slice of lines as above without the const modifier, allowing the
+// MCL library to initialize lines but preventing consumers from mutating.
+var _lines: []Line = &.{};
 
 pub const Distance = registers.Distance;
 pub const Direction = registers.Direction;
 
-// Buffer that can store maximum axes.
-var all_axes: [64 * 4 * 3]Axis = undefined;
-
-// Buffer that can store maximum stations.
-var all_stations: [64 * 4]Station = undefined;
-
-// Buffer that can store maximum lines (one line per station).
-var all_lines: [64 * 4]Line = undefined;
-
-// Buffer that can store maximum ranges (one range per station).
-var all_ranges: [64 * 4]Line.ConnectionRange = undefined;
-
-// Buffers that can store maximum registers. Within buffer, registers are
-// stored in order of use in flattened line ranges.
-var all_x: [64 * 4]registers.X = .{std.mem.zeroes(registers.X)} ** (64 * 4);
-var all_y: [64 * 4]registers.Y = .{std.mem.zeroes(registers.Y)} ** (64 * 4);
-var all_wr: [64 * 4]registers.Wr = .{std.mem.zeroes(registers.Wr)} ** (64 * 4);
-var all_ww: [64 * 4]registers.Ww = .{std.mem.zeroes(registers.Ww)} ** (64 * 4);
-
 var used_channels: [4]bool = .{false} ** 4;
+var allocator: ?std.mem.Allocator = null;
 
 /// Initialize the MCL library. This must be run before any other MCL library
 /// functions, except functions in `Config.zig`, are called. This must also be
 /// re-run after every configuration change to the system.
-pub fn init(config: Config) void {
-    var ranges_offset: usize = 0;
-    var stations_offset: usize = 0;
-    var axes_offset: usize = 0;
-
+pub fn init(a: std.mem.Allocator, config: Config) !void {
     used_channels = .{false} ** 4;
+    _lines = try a.alloc(Line, config.lines.len);
+    errdefer a.free(_lines);
 
     for (config.lines, 0..) |line, line_idx| {
-        var num_stations: usize = 0;
-        var num_axes: usize = 0;
-
-        for (line.ranges, 0..) |range, range_i| {
-            used_channels[@intFromEnum(range.channel)] = true;
-            all_ranges[ranges_offset..][range_i] = .{
-                .channel = range.channel,
-                .range = .{
-                    .start = @intCast(range.start - 1),
-                    .end = @intCast(range.end - 1),
-                },
-            };
-            for (range.start - 1..range.end) |station_i| {
-                all_x[stations_offset..][num_stations] =
-                    std.mem.zeroes(Station.X);
-                all_y[stations_offset..][num_stations] =
-                    std.mem.zeroes(Station.Y);
-                all_wr[stations_offset..][num_stations] =
-                    std.mem.zeroes(Station.Wr);
-                all_ww[stations_offset..][num_stations] =
-                    std.mem.zeroes(Station.Ww);
-                all_stations[stations_offset..][num_stations] = .{
-                    .line = &all_lines[line_idx],
-                    .index = @intCast(num_stations),
-                    .id = @intCast(num_stations + 1),
-                    .x = &all_x[stations_offset..][num_stations],
-                    .y = &all_y[stations_offset..][num_stations],
-                    .wr = &all_wr[stations_offset..][num_stations],
-                    .ww = &all_ww[stations_offset..][num_stations],
-                    .connection = .{
-                        .channel = range.channel,
-                        .index = @intCast(station_i),
-                    },
-                };
-                for (0..3) |axis_i| {
-                    if (num_axes >= line.axes) {
-                        break;
-                    }
-                    all_axes[axes_offset..][num_axes] = .{
-                        .station = &all_stations[stations_offset..][num_stations],
-                        .index = .{
-                            .station = @intCast(axis_i),
-                            .line = @intCast(num_axes),
-                        },
-                        .id = .{
-                            .station = @intCast(axis_i + 1),
-                            .line = @intCast(num_axes + 1),
-                        },
-                    };
-                    num_axes += 1;
-                }
-                num_stations += 1;
-            }
-        }
-        defer ranges_offset += line.ranges.len;
-        defer stations_offset += num_stations;
-        defer axes_offset += num_axes;
-
-        all_lines[line_idx] = .{
-            .index = @intCast(line_idx),
-            .id = @intCast(line_idx + 1),
-            .axes = all_axes[axes_offset..][0..num_axes],
-            .stations = all_stations[stations_offset..][0..num_stations],
-            .x = all_x[stations_offset..][0..num_stations],
-            .y = all_y[stations_offset..][0..num_stations],
-            .wr = all_wr[stations_offset..][0..num_stations],
-            .ww = all_ww[stations_offset..][0..num_stations],
-            .connection = all_ranges[ranges_offset..][0..line.ranges.len],
-        };
+        try Line.init(a, &_lines[line_idx], @intCast(line_idx), line);
     }
-    lines = all_lines[0..config.lines.len];
+    lines = _lines;
+    allocator = a;
+}
+
+pub fn deinit() void {
+    if (allocator) |_| {
+        for (_lines) |*line| {
+            line.deinit();
+        }
+    }
+    _lines = &.{};
+    lines = &.{};
+    allocator = null;
 }
 
 /// Stop traffic transmission between drivers when a slider is between two

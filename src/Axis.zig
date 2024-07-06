@@ -6,9 +6,9 @@ const std = @import("std");
 
 const MclStation = @import("Station.zig");
 
-station: *const MclStation = undefined,
-index: Index = undefined,
-id: Id = undefined,
+station: *const MclStation,
+index: Index,
+id: Id,
 
 pub const Index = struct {
     station: Station,
