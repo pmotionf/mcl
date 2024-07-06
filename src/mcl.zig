@@ -6,6 +6,7 @@ pub const registers = @import("registers.zig");
 pub const connection = @import("connection.zig");
 
 pub const Config = @import("Config.zig");
+pub const Axis = @import("Axis.zig");
 pub const Station = @import("Station.zig");
 pub const Line = @import("Line.zig");
 
@@ -16,6 +17,9 @@ pub var lines: []const Line = undefined;
 
 pub const Distance = registers.Distance;
 pub const Direction = registers.Direction;
+
+// Buffer that can store maximum axes.
+var all_axes: [64 * 4 * 3]Axis = undefined;
 
 // Buffer that can store maximum stations.
 var all_stations: [64 * 4]Station = undefined;
@@ -41,11 +45,13 @@ var used_channels: [4]bool = .{false} ** 4;
 pub fn init(config: Config) void {
     var ranges_offset: usize = 0;
     var stations_offset: usize = 0;
+    var axes_offset: usize = 0;
 
     used_channels = .{false} ** 4;
 
     for (config.lines, 0..) |line, line_idx| {
         var num_stations: usize = 0;
+        var num_axes: usize = 0;
 
         for (line.ranges, 0..) |range, range_i| {
             used_channels[@intFromEnum(range.channel)] = true;
@@ -78,16 +84,35 @@ pub fn init(config: Config) void {
                         .index = @intCast(station_i),
                     },
                 };
+                for (0..3) |axis_i| {
+                    if (num_axes >= line.axes) {
+                        break;
+                    }
+                    all_axes[axes_offset..][num_axes] = .{
+                        .station = .{
+                            .ptr = &all_stations[stations_offset..][num_stations],
+                            .index = @intCast(axis_i),
+                            .id = @intCast(axis_i + 1),
+                        },
+                        .line = .{
+                            .ptr = &all_lines[line_idx],
+                            .index = @intCast(num_axes),
+                            .id = @intCast(num_axes + 1),
+                        },
+                    };
+                    num_axes += 1;
+                }
                 num_stations += 1;
             }
         }
         defer ranges_offset += line.ranges.len;
         defer stations_offset += num_stations;
+        defer axes_offset += num_axes;
 
         all_lines[line_idx] = .{
             .index = @intCast(line_idx),
             .id = @intCast(line_idx + 1),
-            .axes = line.axes,
+            .axes = all_axes[axes_offset..][0..num_axes],
             .stations = all_stations[stations_offset..][0..num_stations],
             .x = all_x[stations_offset..][0..num_stations],
             .y = all_y[stations_offset..][0..num_stations],
@@ -156,4 +181,8 @@ pub fn close() !void {
             };
         }
     }
+}
+
+test {
+    std.testing.refAllDeclsRecursive(@This());
 }

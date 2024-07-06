@@ -16,6 +16,10 @@ pub const Index = std.math.IntFittingRange(0, 64 * 4 - 1);
 pub const Id = std.math.IntFittingRange(1, 64 * 4);
 
 pub const Axis = struct {
+    ptr: *const Station = undefined,
+    index: Axis.Index = undefined,
+    id: Axis.Id = undefined,
+
     /// Local axis index within station.
     pub const Index = std.math.IntFittingRange(0, 2);
     /// Local axis ID within station.

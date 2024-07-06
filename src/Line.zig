@@ -1,4 +1,5 @@
 const Line = @This();
+const GlobalAxis = @import("Axis.zig");
 
 const std = @import("std");
 const mdfunc = @import("mdfunc");
@@ -11,6 +12,10 @@ pub const Index = Station.Index;
 pub const Id = Station.Id;
 
 pub const Axis = struct {
+    ptr: *const Line = undefined,
+    index: Axis.Index = undefined,
+    id: Axis.Id = undefined,
+
     pub const Index = std.math.IntFittingRange(0, 64 * 4 * 3 - 1);
     pub const Id = std.math.IntFittingRange(1, 64 * 4 * 3);
 };
@@ -23,8 +28,9 @@ pub const ConnectionRange = struct {
 index: Index,
 id: Id,
 
-/// Total number of axes in line.
-axes: Axis.Id,
+/// Axes that make up line. Each axis contains both its own line index and
+/// local station index.
+axes: []GlobalAxis,
 
 /// Stations that make up line.
 stations: []Station,
@@ -161,7 +167,7 @@ pub fn pollWw(line: Line) (connection.Error || mdfunc.Error)!void {
             0,
             0xFF,
             .DevWw,
-            @as(i32, range.start) * 16, // 16 from MELSEC manual.
+            @as(i32, range.range.start) * 16, // 16 from MELSEC manual.
             std.mem.sliceAsBytes(line.ww[range_offset..][0..range_len]),
         );
         if (read_bytes != @sizeOf(Station.Ww) * range_len) {
@@ -183,7 +189,7 @@ pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
             0,
             0xFF,
             .DevY,
-            @as(i32, range.start) * @bitSizeOf(Station.Y),
+            @as(i32, range.range.start) * @bitSizeOf(Station.Y),
             std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
         );
         if (y_sent_bytes != @sizeOf(Station.Y) * range_len) {
@@ -195,7 +201,7 @@ pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
             0,
             0xFF,
             .DevWw,
-            @as(i32, range.start) * 16, // 16 from MELSEC manual.
+            @as(i32, range.range.start) * 16, // 16 from MELSEC manual.
             std.mem.sliceAsBytes(line.ww[range_offset..][0..range_len]),
         );
         if (ww_sent_bytes != @sizeOf(Station.Ww) * range_len) {
@@ -217,7 +223,7 @@ pub fn sendY(line: Line) (connection.Error || mdfunc.Error)!void {
             0,
             0xFF,
             .DevY,
-            @as(i32, range.start) * @bitSizeOf(Station.Y),
+            @as(i32, range.range.start) * @bitSizeOf(Station.Y),
             std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
         );
         if (sent_bytes != @sizeOf(Station.Y) * range_len) {
@@ -239,7 +245,7 @@ pub fn sendWw(line: Line) (connection.Error || mdfunc.Error)!void {
             0,
             0xFF,
             .DevWw,
-            @as(i32, range.start) * 16, // 16 from MELSEC manual.
+            @as(i32, range.range.start) * 16, // 16 from MELSEC manual.
             std.mem.sliceAsBytes(line.ww[range_offset..][0..range_len]),
         );
         if (sent_bytes != @sizeOf(Station.Ww) * range_len) {
@@ -257,7 +263,7 @@ pub fn search(line: *const Line, slider_id: u16) !?struct {
     var total_axes: Line.Axis.Id = 0;
     for (line.stations) |station| {
         for (0..3) |_axis| {
-            if (total_axes == line.axes) break;
+            if (total_axes == line.axes.len) break;
             const axis: Station.Axis.Index = @intCast(_axis);
             if (station.wr.slider_number.axis(axis) == slider_id) {
                 return .{ station, axis };
