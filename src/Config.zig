@@ -8,7 +8,7 @@ lines: []Line,
 
 pub const Line = struct {
     /// Total number of axes in line.
-    axes: mcl.Line.Axis.Id,
+    axes: mcl.Axis.Id.Line,
 
     /// CC-Link Station ranges.
     ranges: []Range,

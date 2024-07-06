@@ -89,15 +89,14 @@ pub fn init(config: Config) void {
                         break;
                     }
                     all_axes[axes_offset..][num_axes] = .{
-                        .station = .{
-                            .ptr = &all_stations[stations_offset..][num_stations],
-                            .index = @intCast(axis_i),
-                            .id = @intCast(axis_i + 1),
+                        .station = &all_stations[stations_offset..][num_stations],
+                        .index = .{
+                            .station = @intCast(axis_i),
+                            .line = @intCast(num_axes),
                         },
-                        .line = .{
-                            .ptr = &all_lines[line_idx],
-                            .index = @intCast(num_axes),
-                            .id = @intCast(num_axes + 1),
+                        .id = .{
+                            .station = @intCast(axis_i + 1),
+                            .line = @intCast(num_axes + 1),
                         },
                     };
                     num_axes += 1;

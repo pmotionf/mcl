@@ -1,5 +1,5 @@
 const Line = @This();
-const GlobalAxis = @import("Axis.zig");
+const Axis = @import("Axis.zig");
 
 const std = @import("std");
 const mdfunc = @import("mdfunc");
@@ -11,15 +11,6 @@ const Station = @import("Station.zig");
 pub const Index = Station.Index;
 pub const Id = Station.Id;
 
-pub const Axis = struct {
-    ptr: *const Line = undefined,
-    index: Axis.Index = undefined,
-    id: Axis.Id = undefined,
-
-    pub const Index = std.math.IntFittingRange(0, 64 * 4 * 3 - 1);
-    pub const Id = std.math.IntFittingRange(1, 64 * 4 * 3);
-};
-
 pub const ConnectionRange = struct {
     channel: connection.Channel,
     range: connection.Range,
@@ -30,7 +21,7 @@ id: Id,
 
 /// Axes that make up line. Each axis contains both its own line index and
 /// local station index.
-axes: []GlobalAxis,
+axes: []Axis,
 
 /// Stations that make up line.
 stations: []Station,
@@ -257,24 +248,23 @@ pub fn sendWw(line: Line) (connection.Error || mdfunc.Error)!void {
 /// Return the axis of the specified slider, if found in the system. If the
 /// slider is split across two axes, then the auxiliary axis will be included
 /// in the result tuple.
-pub fn search(line: *const Line, slider_id: u16) !?struct {
-    GlobalAxis,
-    ?GlobalAxis,
-} {
-    var result: struct { GlobalAxis, ?GlobalAxis } = .{ undefined, null };
+pub fn search(line: *const Line, slider_id: u16) !?struct { Axis, ?Axis } {
+    var result: struct { Axis, ?Axis } = .{ undefined, null };
 
     for (line.axes) |axis| {
-        const station = axis.station.ptr;
+        const station = axis.station;
         const wr = station.wr;
-        if (wr.slider_number.axis(axis.station.index) == slider_id) {
+        if (wr.slider_number.axis(axis.index.station) == slider_id) {
             result.@"0" = axis;
 
-            if (axis.station.index == 2 and axis.line.id < line.axes.len) {
-                const next_axis = line.axes[axis.line.index + 1];
-                const next_station = next_axis.station.ptr;
+            if (axis.index.station == 2 and axis.id.line < line.axes.len) {
+                const next_axis = line.axes[axis.index.line + 1];
+                const next_station = next_axis.station;
                 const next_wr = next_station.wr;
 
-                if (next_wr.slider_number.axis(next_axis.station.index) == slider_id) {
+                if (next_wr.slider_number.axis(
+                    next_axis.index.station,
+                ) == slider_id) {
                     result.@"1" = next_axis;
                 }
             }
@@ -288,10 +278,10 @@ pub fn search(line: *const Line, slider_id: u16) !?struct {
     // If there are two detected contiguous axes, determine which is primary
     // and auxiliary.
     if (result.@"1") |*aux| {
-        const main: *GlobalAxis = &result.@"0";
-        const station = main.station.ptr;
+        const main: *Axis = &result.@"0";
+        const station = main.station;
         const wr = station.wr;
-        const state = wr.slider_state.axis(main.station.index);
+        const state = wr.slider_state.axis(main.index.station);
         if (state == .NextAxisAuxiliary or state == .NextAxisCompleted or
             state == .PrevAxisAuxiliary or state == .PrevAxisCompleted)
         {
@@ -299,9 +289,9 @@ pub fn search(line: *const Line, slider_id: u16) !?struct {
             main.* = aux.*;
             aux.* = temp;
         } else if (state == .None) {
-            const aux_station: *const Station = aux.station.ptr;
+            const aux_station: *const Station = aux.station;
             const aux_wr = aux_station.wr;
-            const aux_state = aux_wr.slider_state.axis(aux.station.index);
+            const aux_state = aux_wr.slider_state.axis(aux.index.station);
             if (aux_state != .None and
                 aux_state != .NextAxisAuxiliary and
                 aux_state != .NextAxisCompleted and
