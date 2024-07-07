@@ -33,6 +33,12 @@ pub fn init(a: std.mem.Allocator, config: Config) !void {
     _lines = try a.alloc(Line, config.lines.len);
     errdefer a.free(_lines);
 
+    for (config.lines) |line| {
+        for (line.ranges) |range| {
+            used_channels[@intFromEnum(range.channel)] = true;
+        }
+    }
+
     for (config.lines, 0..) |line, line_idx| {
         try Line.init(a, &_lines[line_idx], @intCast(line_idx), line);
     }
