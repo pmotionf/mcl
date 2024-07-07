@@ -51,40 +51,6 @@ pub fn deinit() void {
     allocator = null;
 }
 
-/// Stop traffic transmission between drivers when a slider is between two
-/// stations and must move in a direction. If traffic transmission is stopped,
-/// the station and direction to which transmission was stopped is returned as
-/// a tuple.
-pub fn stopTrafficTransmission(
-    back: Station,
-    front: Station,
-) !?struct { Station, Direction } {
-    const back_slider = back.wr.slider_number.axis3;
-    const front_slider = front.wr.slider_number.axis1;
-
-    const back_state = back.wr.slider_state.axis3;
-    const front_state = front.wr.slider_state.axis1;
-
-    if (back_slider != front_slider) return null;
-
-    // If back is auxiliary, then front is sending traffic to back.
-    if (back_state == .NextAxisAuxiliary or
-        back_state == .NextAxisCompleted or back_state == .None)
-    {
-        try front.setY(0x9);
-        return .{ front, .backward };
-    }
-    // If front is auxiliary, then back is sending traffic to front.
-    else if (front_state == .PrevAxisAuxiliary or
-        front_state == .PrevAxisCompleted or front_state == .None)
-    {
-        try back.setY(0xA);
-        return .{ back, .forward };
-    }
-
-    return null;
-}
-
 /// Opens all channels used in all configured lines.
 pub fn open() !void {
     for (used_channels, 0..) |used, i| {
