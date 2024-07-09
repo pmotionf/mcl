@@ -169,7 +169,7 @@ pub const Wr = packed struct(u256) {
         try writer.writeAll("\tslider: {\n");
         for (0..3) |_axis| {
             const axis: u2 = @intCast(_axis);
-            try writer.print("\t\taxis{}: {\n", .{axis + 1});
+            try writer.print("\t\taxis{}: {{\n", .{axis + 1});
             const slider = wr.slider.axis(axis);
             try writer.print("\t\t\tlocation: {d},\n", .{slider.location});
             try writer.print("\t\t\tid: {},\n", .{slider.id});
