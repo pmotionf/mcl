@@ -5,6 +5,7 @@ const mdfunc = @import("mdfunc");
 const registers = @import("registers.zig");
 const connection = @import("connection.zig");
 const Line = @import("Line.zig");
+const Axis = @import("Axis.zig");
 
 pub const X = registers.X;
 pub const Y = registers.Y;
@@ -18,6 +19,7 @@ pub const Id = std.math.IntFittingRange(1, 64 * 4);
 line: *const Line,
 index: Index,
 id: Id,
+axes: []Axis,
 
 x: *X,
 y: *Y,

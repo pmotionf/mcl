@@ -75,19 +75,7 @@ pub fn init(
             },
         };
         for (0..range.end - range.start + 1) |station_i| {
-            result.stations[station_i] = .{
-                .line = result,
-                .index = @intCast(station_i),
-                .id = @intCast(station_i + 1),
-                .x = &result.x[station_i],
-                .y = &result.y[station_i],
-                .wr = &result.wr[station_i],
-                .ww = &result.ww[station_i],
-                .connection = .{
-                    .channel = range.channel,
-                    .index = @intCast(range.start - 1 + station_i),
-                },
-            };
+            const start_num_axes = num_axes;
             for (0..3) |axis_i| {
                 if (num_axes >= result.axes.len) break;
                 result.axes[num_axes] = .{
@@ -103,6 +91,20 @@ pub fn init(
                 };
                 num_axes += 1;
             }
+            result.stations[station_i] = .{
+                .line = result,
+                .index = @intCast(station_i),
+                .id = @intCast(station_i + 1),
+                .x = &result.x[station_i],
+                .y = &result.y[station_i],
+                .wr = &result.wr[station_i],
+                .ww = &result.ww[station_i],
+                .axes = result.axes[start_num_axes..num_axes],
+                .connection = .{
+                    .channel = range.channel,
+                    .index = @intCast(range.start - 1 + station_i),
+                },
+            };
         }
     }
     result.allocator = allocator;
