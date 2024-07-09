@@ -1,8 +1,6 @@
 const std = @import("std");
 const registers = @import("../registers.zig");
 
-const Distance = registers.Distance;
-
 /// Registers written through CC-Link's "DevWr" device. Used as a "read"
 /// register bank.
 pub const Wr = packed struct(u256) {

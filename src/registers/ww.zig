@@ -1,15 +1,13 @@
 const std = @import("std");
 const registers = @import("../registers.zig");
 
-const Distance = registers.Distance;
-
 /// Registers written through CC-Link's "DevWw" device. Used as a "write"
 /// register bank.
 pub const Ww = packed struct(u256) {
     command_code: CommandCode = .None,
     command_slider_number: u16 = 0,
     target_axis_number: u16 = 0,
-    location_distance: Distance = .{},
+    location_distance: f32 = 0.0,
     speed_percentage: u16 = 0,
     acceleration_percentage: u16 = 0,
     _112: u144 = 0,

@@ -19,7 +19,6 @@ pub var lines: []const Line = &.{};
 // MCL library to initialize lines but preventing consumers from mutating.
 var _lines: []Line = &.{};
 
-pub const Distance = registers.Distance;
 pub const Direction = registers.Direction;
 
 var used_channels: [4]bool = .{false} ** 4;
