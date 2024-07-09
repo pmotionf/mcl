@@ -369,27 +369,13 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
         const main: *Axis = &result.@"0";
         const station = main.station;
         const wr = station.wr;
-        const state = wr.slider.axis(main.index.station).state;
-        if (state == .NextAxisAuxiliary or state == .NextAxisCompleted or
-            state == .PrevAxisAuxiliary or state == .PrevAxisCompleted)
-        {
+        const slider = wr.slider.axis(main.index.station);
+        const aux_wr = aux.station.wr;
+        const aux_slider = aux_wr.slider.axis(aux.index.station);
+        if (slider.auxiliary or (!slider.enabled and aux_slider.enabled)) {
             const temp = main.*;
             main.* = aux.*;
             aux.* = temp;
-        } else if (state == .None) {
-            const aux_station: *const Station = aux.station;
-            const aux_wr = aux_station.wr;
-            const aux_state = aux_wr.slider.axis(aux.index.station).state;
-            if (aux_state != .None and
-                aux_state != .NextAxisAuxiliary and
-                aux_state != .NextAxisCompleted and
-                aux_state != .PrevAxisAuxiliary and
-                aux_state != .PrevAxisCompleted)
-            {
-                const temp = main.*;
-                main.* = aux.*;
-                aux.* = temp;
-            }
         }
     }
 
@@ -409,10 +395,18 @@ test "Line search" {
     });
     defer line.deinit();
 
-    line.stations[1].wr.slider.axis3.id = 1;
-    line.stations[2].wr.slider.axis1.id = 1;
-    line.stations[1].wr.slider.axis3.state = .NextAxisCompleted;
-    line.stations[2].wr.slider.axis1.state = .PosMoveCompleted;
+    line.stations[1].wr.slider.axis3 = .{
+        .id = 1,
+        .auxiliary = true,
+        .enabled = true,
+        .state = .NextAxisCompleted,
+    };
+    line.stations[2].wr.slider.axis1 = .{
+        .id = 1,
+        .auxiliary = false,
+        .enabled = true,
+        .state = .PosMoveCompleted,
+    };
 
     const _result = line.search(1);
     try std.testing.expect(_result != null);
