@@ -203,9 +203,9 @@ pub const Wr = packed struct(u256) {
         try writer.print("\t\t\taxis3: {},\n", .{wr.slider.id.axis3});
         try writer.writeAll("\t\t},\n");
         try writer.writeAll("\t\tlocation: {\n");
-        try writer.print("\t\t\taxis1: {},\n", .{wr.slider.location.axis1});
-        try writer.print("\t\t\taxis2: {},\n", .{wr.slider.location.axis2});
-        try writer.print("\t\t\taxis3: {},\n", .{wr.slider.location.axis3});
+        try writer.print("\t\t\taxis1: {d},\n", .{wr.slider.location.axis1});
+        try writer.print("\t\t\taxis2: {d},\n", .{wr.slider.location.axis2});
+        try writer.print("\t\t\taxis3: {d},\n", .{wr.slider.location.axis3});
         try writer.writeAll("\t\t},\n");
         try writer.writeAll("\t\tstate: {\n");
         try writer.print("\t\t\taxis1: {},\n", .{wr.slider.state.axis1});

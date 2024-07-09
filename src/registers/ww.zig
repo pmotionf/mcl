@@ -56,7 +56,7 @@ pub const Ww = packed struct(u256) {
             .{ww.target_axis_number},
         );
         try writer.print(
-            "\tlocation_distance: {},\n",
+            "\tlocation_distance: {d},\n",
             .{ww.location_distance},
         );
         try writer.print(
