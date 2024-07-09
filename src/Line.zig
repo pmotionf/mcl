@@ -342,7 +342,7 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
     for (line.axes) |axis| {
         const station = axis.station;
         const wr = station.wr;
-        if (wr.slider_number.axis(axis.index.station) == slider_id) {
+        if (wr.slider.id.axis(axis.index.station) == slider_id) {
             result.@"0" = axis;
 
             if (axis.index.station == 2 and axis.id.line < line.axes.len) {
@@ -350,7 +350,7 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
                 const next_station = next_axis.station;
                 const next_wr = next_station.wr;
 
-                if (next_wr.slider_number.axis(
+                if (next_wr.slider.id.axis(
                     next_axis.index.station,
                 ) == slider_id) {
                     result.@"1" = next_axis;
@@ -369,7 +369,7 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
         const main: *Axis = &result.@"0";
         const station = main.station;
         const wr = station.wr;
-        const state = wr.slider_state.axis(main.index.station);
+        const state = wr.slider.state.axis(main.index.station);
         if (state == .NextAxisAuxiliary or state == .NextAxisCompleted or
             state == .PrevAxisAuxiliary or state == .PrevAxisCompleted)
         {
@@ -379,7 +379,7 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
         } else if (state == .None) {
             const aux_station: *const Station = aux.station;
             const aux_wr = aux_station.wr;
-            const aux_state = aux_wr.slider_state.axis(aux.index.station);
+            const aux_state = aux_wr.slider.state.axis(aux.index.station);
             if (aux_state != .None and
                 aux_state != .NextAxisAuxiliary and
                 aux_state != .NextAxisCompleted and
@@ -409,10 +409,10 @@ test "Line search" {
     });
     defer line.deinit();
 
-    line.stations[1].wr.slider_number.axis3 = 1;
-    line.stations[2].wr.slider_number.axis1 = 1;
-    line.stations[1].wr.slider_state.axis3 = .NextAxisCompleted;
-    line.stations[2].wr.slider_state.axis1 = .PosMoveCompleted;
+    line.stations[1].wr.slider.id.axis3 = 1;
+    line.stations[2].wr.slider.id.axis1 = 1;
+    line.stations[1].wr.slider.state.axis3 = .NextAxisCompleted;
+    line.stations[2].wr.slider.state.axis1 = .PosMoveCompleted;
 
     const _result = line.search(1);
     try std.testing.expect(_result != null);
