@@ -6,8 +6,8 @@ const registers = @import("../registers.zig");
 pub const Ww = packed struct(u256) {
     command_code: CommandCode = .None,
     command_slider_number: u16 = 0,
-    target_axis_number: u16 = 0,
     location_distance: f32 = 0.0,
+    target_axis_number: u16 = 0,
     speed_percentage: u16 = 0,
     acceleration_percentage: u16 = 0,
     _112: u144 = 0,
@@ -52,12 +52,12 @@ pub const Ww = packed struct(u256) {
             .{ww.command_slider_number},
         );
         try writer.print(
-            "\ttarget_axis_number: {},\n",
-            .{ww.target_axis_number},
-        );
-        try writer.print(
             "\tlocation_distance: {d},\n",
             .{ww.location_distance},
+        );
+        try writer.print(
+            "\ttarget_axis_number: {},\n",
+            .{ww.target_axis_number},
         );
         try writer.print(
             "\tspeed_percentage: {},\n",
