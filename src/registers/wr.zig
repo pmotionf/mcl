@@ -5,91 +5,56 @@ const registers = @import("../registers.zig");
 /// register bank.
 pub const Wr = packed struct(u256) {
     command_response: CommandResponseCode = .NoError,
-    slider: Slider = .{},
+    pitch_count: packed struct(u48) {
+        axis1: i16 = 0,
+        axis2: i16 = 0,
+        axis3: i16 = 0,
 
-    pub const Slider = packed struct(u240) {
-        id: packed struct(u48) {
-            axis1: u16 = 0,
-            axis2: u16 = 0,
-            axis3: u16 = 0,
+        pub fn axis(self: @This(), a: u2) i16 {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `pitch_count`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+    } = .{},
+    slider: packed struct(u192) {
+        axis1: Slider = .{},
+        axis2: Slider = .{},
+        axis3: Slider = .{},
 
-            pub fn axis(self: @This(), a: u2) u16 {
-                return switch (a) {
-                    0 => self.axis1,
-                    1 => self.axis2,
-                    2 => self.axis3,
-                    3 => {
-                        std.log.err(
-                            "Invalid axis index 3 for `slider_number`",
-                            .{},
-                        );
-                        unreachable;
-                    },
-                };
-            }
-        } = .{},
-        location: packed struct(u96) {
-            axis1: f32 = 0.0,
-            axis2: f32 = 0.0,
-            axis3: f32 = 0.0,
+        pub fn axis(self: @This(), a: u2) Slider {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `slider`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+    } = .{},
 
-            pub fn axis(self: @This(), a: u2) f32 {
-                return switch (a) {
-                    0 => self.axis1,
-                    1 => self.axis2,
-                    2 => self.axis3,
-                    3 => {
-                        std.log.err(
-                            "Invalid axis index 3 for `slider_location`",
-                            .{},
-                        );
-                        unreachable;
-                    },
-                };
-            }
-        } = .{},
-        state: packed struct(u48) {
-            axis1: State = .None,
-            axis2: State = .None,
-            axis3: State = .None,
+    pub const Slider = packed struct(u64) {
+        location: f32 = 0.0,
+        id: u16 = 0,
+        auxiliary: bool = false,
+        enabled: bool = false,
+        _50: u6 = 0,
+        state: State = .None,
 
-            pub fn axis(self: @This(), a: u2) State {
-                return switch (a) {
-                    0 => self.axis1,
-                    1 => self.axis2,
-                    2 => self.axis3,
-                    3 => {
-                        std.log.err(
-                            "Invalid axis index 3 for `slider_state`",
-                            .{},
-                        );
-                        unreachable;
-                    },
-                };
-            }
-        } = .{},
-        pitch_count: packed struct(u48) {
-            axis1: i16 = 0,
-            axis2: i16 = 0,
-            axis3: i16 = 0,
-
-            pub fn axis(self: @This(), a: u2) i16 {
-                return switch (a) {
-                    0 => self.axis1,
-                    1 => self.axis2,
-                    2 => self.axis3,
-                    3 => {
-                        std.log.err(
-                            "Invalid axis index 3 for `pitch_count`",
-                            .{},
-                        );
-                        unreachable;
-                    },
-                };
-            }
-        } = .{},
-
-        pub const State = enum(i16) {
+        pub const State = enum(u8) {
             None = 0,
             WarmupProgressing = 1,
             WarmupCompleted = 2,
@@ -196,27 +161,23 @@ pub const Wr = packed struct(u256) {
             "\tcommand_response: {},\n",
             .{wr.command_response},
         );
-        try writer.writeAll("\tslider: {\n");
-        try writer.writeAll("\t\tid: {\n");
-        try writer.print("\t\t\taxis1: {},\n", .{wr.slider.id.axis1});
-        try writer.print("\t\t\taxis2: {},\n", .{wr.slider.id.axis2});
-        try writer.print("\t\t\taxis3: {},\n", .{wr.slider.id.axis3});
-        try writer.writeAll("\t\t},\n");
-        try writer.writeAll("\t\tlocation: {\n");
-        try writer.print("\t\t\taxis1: {d},\n", .{wr.slider.location.axis1});
-        try writer.print("\t\t\taxis2: {d},\n", .{wr.slider.location.axis2});
-        try writer.print("\t\t\taxis3: {d},\n", .{wr.slider.location.axis3});
-        try writer.writeAll("\t\t},\n");
-        try writer.writeAll("\t\tstate: {\n");
-        try writer.print("\t\t\taxis1: {},\n", .{wr.slider.state.axis1});
-        try writer.print("\t\t\taxis2: {},\n", .{wr.slider.state.axis2});
-        try writer.print("\t\t\taxis3: {},\n", .{wr.slider.state.axis3});
-        try writer.writeAll("\t\t},\n");
         try writer.writeAll("\t\tpitch_count: {\n");
-        try writer.print("\t\t\taxis1: {},\n", .{wr.slider.pitch_count.axis1});
-        try writer.print("\t\t\taxis2: {},\n", .{wr.slider.pitch_count.axis2});
-        try writer.print("\t\t\taxis3: {},\n", .{wr.slider.pitch_count.axis3});
+        try writer.print("\t\t\taxis1: {},\n", .{wr.pitch_count.axis1});
+        try writer.print("\t\t\taxis2: {},\n", .{wr.pitch_count.axis2});
+        try writer.print("\t\t\taxis3: {},\n", .{wr.pitch_count.axis3});
         try writer.writeAll("\t\t},\n");
+        try writer.writeAll("\tslider: {\n");
+        for (0..3) |_axis| {
+            const axis: u2 = @intCast(_axis);
+            try writer.print("\t\taxis{}: {\n", .{axis + 1});
+            const slider = wr.slider.axis(axis);
+            try writer.print("\t\t\tlocation: {d},\n", .{slider.location});
+            try writer.print("\t\t\tid: {},\n", .{slider.id});
+            try writer.print("\t\t\tauxiliary: {},\n", .{slider.auxiliary});
+            try writer.print("\t\t\tenabled: {},\n", .{slider.enabled});
+            try writer.print("\t\t\tstate: {},\n", .{slider.state});
+            try writer.writeAll("\t\t},\n");
+        }
         try writer.writeAll("\t},\n");
         try writer.writeAll("}\n");
     }
