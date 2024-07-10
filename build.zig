@@ -49,4 +49,8 @@ pub fn build(b: *std.Build) !void {
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_unit_tests.step);
+
+    // Check step is same as test, as there is no output artifact.
+    const check = b.step("check", "Check if foo compiles");
+    check.dependOn(&run_unit_tests.step);
 }
