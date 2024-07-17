@@ -263,19 +263,7 @@ pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
             @as(usize, range.range.end - range.range.start) + 1;
         defer range_offset += range_len;
 
-        const y_sent_bytes = try mdfunc.receiveEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            @as(i32, range.range.start) * @bitSizeOf(Station.Y),
-            std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
-        );
-        if (y_sent_bytes != @sizeOf(Station.Y) * range_len) {
-            return connection.Error.UnexpectedSendSizeY;
-        }
-
-        const ww_sent_bytes = try mdfunc.receiveEx(
+        const ww_sent_bytes = try mdfunc.sendEx(
             path,
             0,
             0xFF,
@@ -285,6 +273,18 @@ pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
         );
         if (ww_sent_bytes != @sizeOf(Station.Ww) * range_len) {
             return connection.Error.UnexpectedSendSizeWw;
+        }
+
+        const y_sent_bytes = try mdfunc.sendEx(
+            path,
+            0,
+            0xFF,
+            .DevY,
+            @as(i32, range.range.start) * @bitSizeOf(Station.Y),
+            std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
+        );
+        if (y_sent_bytes != @sizeOf(Station.Y) * range_len) {
+            return connection.Error.UnexpectedSendSizeY;
         }
     }
 }
@@ -297,7 +297,7 @@ pub fn sendY(line: Line) (connection.Error || mdfunc.Error)!void {
             @as(usize, range.range.end - range.range.start) + 1;
         defer range_offset += range_len;
 
-        const sent_bytes = try mdfunc.receiveEx(
+        const sent_bytes = try mdfunc.sendEx(
             path,
             0,
             0xFF,
@@ -319,7 +319,7 @@ pub fn sendWw(line: Line) (connection.Error || mdfunc.Error)!void {
             @as(usize, range.range.end - range.range.start) + 1;
         defer range_offset += range_len;
 
-        const sent_bytes = try mdfunc.receiveEx(
+        const sent_bytes = try mdfunc.sendEx(
             path,
             0,
             0xFF,
@@ -416,4 +416,21 @@ test "Line search" {
     const aux = result.@"1".?;
     try std.testing.expectEqual(7, main.id.line);
     try std.testing.expectEqual(6, aux.id.line);
+}
+
+test {
+    var _ranges: [1]Config.Line.Range = .{.{
+        .channel = .cc_link_1slot,
+        .start = 1,
+        .end = 2,
+    }};
+    var line: Line = undefined;
+    try Line.init(std.testing.allocator, &line, 0, .{
+        .axes = 6,
+        .ranges = &_ranges,
+    });
+    defer line.deinit();
+
+    line.stations[1].y.cc_link_enable = true;
+    try std.testing.expectEqual(true, line.y[1].cc_link_enable);
 }
