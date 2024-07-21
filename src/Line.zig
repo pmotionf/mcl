@@ -367,12 +367,7 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
     // and auxiliary.
     if (result.@"1") |*aux| {
         const main: *Axis = &result.@"0";
-        const station = main.station;
-        const wr = station.wr;
-        const slider = wr.slider.axis(main.index.station);
-        const aux_wr = aux.station.wr;
-        const aux_slider = aux_wr.slider.axis(aux.index.station);
-        if (slider.auxiliary or (!slider.enabled and aux_slider.enabled)) {
+        if (main.isAuxiliaryTo(aux.*)) {
             const temp = main.*;
             main.* = aux.*;
             aux.* = temp;

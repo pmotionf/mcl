@@ -29,3 +29,36 @@ pub const Id = struct {
     /// Axis ID within line.
     pub const Line = std.math.IntFittingRange(1, 64 * 4 * 3);
 };
+
+/// Whether current axis is auxiliary to provided axis. In the case of line
+/// transition, the pushing axis always has priority to be the main axis due
+/// to a potential invalid slider location on the pulling axis.
+pub fn isAuxiliaryTo(self: Axis, other: Axis) bool {
+    // Axes do not have to be in same line, as one axis can be "auxiliary" to
+    // another during line transition.
+    const self_slider = self.station.wr.slider.axis(self.index.station);
+    const other_slider = other.station.wr.slider.axis(other.index.station);
+
+    if (self_slider.id != other_slider.id) return false;
+    if (self_slider.auxiliary) {
+        return true;
+    } else if (other_slider.auxiliary) {
+        return false;
+    }
+
+    if (!self_slider.enabled and other_slider.enabled) {
+        return true;
+    } else if (self_slider.enabled and !other_slider.enabled) {
+        return false;
+    }
+
+    if (self_slider.state == .NextAxisAuxiliary or
+        self_slider.state == .PrevAxisAuxiliary or
+        self_slider.state == .PullBackward or
+        self_slider.state == .PullForward)
+    {
+        return true;
+    }
+
+    return false;
+}
