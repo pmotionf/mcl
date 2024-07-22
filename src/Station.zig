@@ -133,8 +133,29 @@ pub fn pollWw(station: Station) (connection.Error || mdfunc.Error)!void {
 }
 
 pub fn send(station: Station) (connection.Error || mdfunc.Error)!void {
-    try station.sendWw();
-    try station.sendY();
+    const path = try station.connection.channel.openedPath();
+    const sent_ww_bytes = try mdfunc.sendEx(
+        path,
+        0,
+        0xFF,
+        .DevWw,
+        @as(i32, station.connection.index) * 16,
+        std.mem.asBytes(station.ww),
+    );
+    if (sent_ww_bytes != @sizeOf(Ww)) {
+        return connection.Error.UnexpectedSendSizeWw;
+    }
+    const sent_y_bytes = try mdfunc.sendEx(
+        path,
+        0,
+        0xFF,
+        .DevY,
+        @as(i32, station.connection.index) * @bitSizeOf(Y),
+        std.mem.asBytes(station.y),
+    );
+    if (sent_y_bytes != @sizeOf(Y)) {
+        return connection.Error.UnexpectedSendSizeY;
+    }
 }
 
 pub fn sendY(station: Station) (connection.Error || mdfunc.Error)!void {
