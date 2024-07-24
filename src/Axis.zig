@@ -52,6 +52,12 @@ pub fn isAuxiliaryTo(self: Axis, other: Axis) bool {
         return false;
     }
 
+    if (self_slider.state == .None and other_slider.state != .None) {
+        return true;
+    } else if (self_slider.state != .None and other_slider.state == .None) {
+        return false;
+    }
+
     if (self_slider.state == .NextAxisAuxiliary or
         self_slider.state == .PrevAxisAuxiliary or
         self_slider.state == .PullBackward or
