@@ -38,13 +38,20 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
+    const mdfunc_mock = b.dependency("mdfunc", .{
+        .target = target,
+        .optimize = optimize,
+        .mdfunc = mdfunc_lib_path,
+        .mock = true,
+    });
+
     const unit_tests = b.addTest(.{
         .root_source_file = b.path("src/mcl.zig"),
         .target = target,
         .optimize = optimize,
     });
     unit_tests.root_module.addImport("version", version);
-    unit_tests.root_module.addImport("mdfunc", mdfunc.module("mdfunc"));
+    unit_tests.root_module.addImport("mdfunc", mdfunc_mock.module("mdfunc"));
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");
