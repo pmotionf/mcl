@@ -333,7 +333,9 @@ pub const X = packed struct(u64) {
             };
         }
     } = .{},
-    _60: u4 = 0,
+    vdc_undervoltage_detected: bool = false,
+    vdc_overvoltage_detected: bool = false,
+    _62: u2 = 0,
 
     pub fn format(
         x: X,
@@ -491,6 +493,14 @@ pub const X = packed struct(u64) {
             try writer.writeAll("\t\t},\n");
         }
         try writer.writeAll("\t},\n");
+        try writer.print(
+            "\tvdc_undervoltage_detected: {},\n",
+            .{x.vdc_undervoltage_detected},
+        );
+        try writer.print(
+            "\tvdc_overvoltage_detected: {}, \n",
+            .{x.vdc_overvoltage_detected},
+        );
         try writer.writeAll("}\n");
     }
 };
