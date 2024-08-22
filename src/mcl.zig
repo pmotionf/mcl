@@ -51,6 +51,8 @@ pub fn deinit() void {
             line.deinit();
         }
     }
+    if (allocator) |a| a.free(_lines);
+
     _lines = &.{};
     lines = &.{};
     allocator = null;
