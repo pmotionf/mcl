@@ -51,7 +51,15 @@ pub const Wr = packed struct(u256) {
         id: u16 = 0,
         auxiliary: bool = false,
         enabled: bool = false,
-        _50: u6 = 0,
+        /// Whether slider is currently in quasi-enabled state. Quasi-enabled
+        /// state occurs when slider is first entering a module, before it has
+        /// entered module enough to start servo control.
+        quasi: bool = false,
+        /// Whether slider is currently in zombie state. Zombie state occurs
+        /// when slider is leaving a module, after it has left the module
+        /// enough that servo control is no longer possible.
+        zombie: bool = false,
+        _52: u4 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
@@ -175,6 +183,8 @@ pub const Wr = packed struct(u256) {
             try writer.print("\t\t\tid: {},\n", .{slider.id});
             try writer.print("\t\t\tauxiliary: {},\n", .{slider.auxiliary});
             try writer.print("\t\t\tenabled: {},\n", .{slider.enabled});
+            try writer.print("\t\t\tquasi: {},\n", .{slider.quasi});
+            try writer.print("\t\t\tzombie: {},\n", .{slider.zombie});
             try writer.print("\t\t\tstate: {},\n", .{slider.state});
             try writer.writeAll("\t\t},\n");
         }
