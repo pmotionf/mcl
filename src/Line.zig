@@ -2,7 +2,7 @@ const Line = @This();
 
 const std = @import("std");
 const mdfunc = @import("mdfunc");
-const connection = @import("connection.zig");
+const cc_link = @import("cc_link.zig");
 const Axis = @import("Axis.zig");
 const Station = @import("Station.zig");
 const Config = @import("Config.zig");
@@ -32,8 +32,8 @@ connection: []Range,
 allocator: std.mem.Allocator,
 
 const Range = struct {
-    channel: connection.Channel,
-    range: connection.Range,
+    channel: cc_link.Channel,
+    range: cc_link.Range,
 };
 
 pub fn init(
@@ -138,7 +138,7 @@ pub fn poll(line: Line) !void {
             std.mem.sliceAsBytes(line.x[range_offset..][0..range_len]),
         );
         if (x_read_bytes != @sizeOf(Station.X) * range_len) {
-            return connection.Error.UnexpectedReadSizeX;
+            return cc_link.Error.UnexpectedReadSizeX;
         }
 
         const y_read_bytes = try mdfunc.receiveEx(
@@ -150,7 +150,7 @@ pub fn poll(line: Line) !void {
             std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
         );
         if (y_read_bytes != @sizeOf(Station.Y) * range_len) {
-            return connection.Error.UnexpectedReadSizeY;
+            return cc_link.Error.UnexpectedReadSizeY;
         }
 
         const wr_read_bytes = try mdfunc.receiveEx(
@@ -162,12 +162,12 @@ pub fn poll(line: Line) !void {
             std.mem.sliceAsBytes(line.wr[range_offset..][0..range_len]),
         );
         if (wr_read_bytes != @sizeOf(Station.Wr) * range_len) {
-            return connection.Error.UnexpectedReadSizeWr;
+            return cc_link.Error.UnexpectedReadSizeWr;
         }
     }
 }
 
-pub fn pollX(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn pollX(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -184,12 +184,12 @@ pub fn pollX(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.x[range_offset..][0..range_len]),
         );
         if (read_bytes != @sizeOf(Station.X) * range_len) {
-            return connection.Error.UnexpectedReadSizeX;
+            return cc_link.Error.UnexpectedReadSizeX;
         }
     }
 }
 
-pub fn pollY(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn pollY(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -206,12 +206,12 @@ pub fn pollY(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
         );
         if (read_bytes != @sizeOf(Station.Y) * range_len) {
-            return connection.Error.UnexpectedReadSizeY;
+            return cc_link.Error.UnexpectedReadSizeY;
         }
     }
 }
 
-pub fn pollWr(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn pollWr(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -228,12 +228,12 @@ pub fn pollWr(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.wr[range_offset..][0..range_len]),
         );
         if (read_bytes != @sizeOf(Station.Wr) * range_len) {
-            return connection.Error.UnexpectedReadSizeWr;
+            return cc_link.Error.UnexpectedReadSizeWr;
         }
     }
 }
 
-pub fn pollWw(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn pollWw(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -250,12 +250,12 @@ pub fn pollWw(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.ww[range_offset..][0..range_len]),
         );
         if (read_bytes != @sizeOf(Station.Ww) * range_len) {
-            return connection.Error.UnexpectedReadSizeWw;
+            return cc_link.Error.UnexpectedReadSizeWw;
         }
     }
 }
 
-pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn send(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -272,7 +272,7 @@ pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.ww[range_offset..][0..range_len]),
         );
         if (ww_sent_bytes != @sizeOf(Station.Ww) * range_len) {
-            return connection.Error.UnexpectedSendSizeWw;
+            return cc_link.Error.UnexpectedSendSizeWw;
         }
 
         const y_sent_bytes = try mdfunc.sendEx(
@@ -284,12 +284,12 @@ pub fn send(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
         );
         if (y_sent_bytes != @sizeOf(Station.Y) * range_len) {
-            return connection.Error.UnexpectedSendSizeY;
+            return cc_link.Error.UnexpectedSendSizeY;
         }
     }
 }
 
-pub fn sendY(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn sendY(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -306,12 +306,12 @@ pub fn sendY(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
         );
         if (sent_bytes != @sizeOf(Station.Y) * range_len) {
-            return connection.Error.UnexpectedSendSizeY;
+            return cc_link.Error.UnexpectedSendSizeY;
         }
     }
 }
 
-pub fn sendWw(line: Line) (connection.Error || mdfunc.Error)!void {
+pub fn sendWw(line: Line) (cc_link.Error || mdfunc.Error)!void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
         const path = try range.channel.openedPath();
@@ -328,7 +328,7 @@ pub fn sendWw(line: Line) (connection.Error || mdfunc.Error)!void {
             std.mem.sliceAsBytes(line.ww[range_offset..][0..range_len]),
         );
         if (sent_bytes != @sizeOf(Station.Ww) * range_len) {
-            return connection.Error.UnexpectedSendSizeWw;
+            return cc_link.Error.UnexpectedSendSizeWw;
         }
     }
 }

@@ -3,7 +3,7 @@ const mdfunc = @import("mdfunc");
 const v = @import("version");
 
 pub const registers = @import("registers.zig");
-pub const connection = @import("connection.zig");
+pub const cc_link = @import("cc_link.zig");
 
 pub const Config = @import("Config.zig");
 pub const Axis = @import("Axis.zig");
@@ -62,7 +62,7 @@ pub fn deinit() void {
 pub fn open() !void {
     for (used_channels, 0..) |used, i| {
         if (used) {
-            const chan: connection.Channel = @enumFromInt(i);
+            const chan: cc_link.Channel = @enumFromInt(i);
             chan.open() catch |e| switch (e) {
                 mdfunc.Error.@"66: Channel-opened error" => {},
                 else => return e,
@@ -75,7 +75,7 @@ pub fn open() !void {
 pub fn close() !void {
     for (used_channels, 0..) |used, i| {
         if (used) {
-            const chan: connection.Channel = @enumFromInt(i);
+            const chan: cc_link.Channel = @enumFromInt(i);
             chan.close() catch |e| switch (e) {
                 else => return e,
             };

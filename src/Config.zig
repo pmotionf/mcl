@@ -1,7 +1,7 @@
 const Config = @This();
 
 const std = @import("std");
-const connection = @import("connection.zig");
+const cc_link = @import("cc_link.zig");
 const mcl = @import("mcl.zig");
 
 lines: []Line,
@@ -15,11 +15,11 @@ pub const Line = struct {
 
     pub const Range = struct {
         /// CC-Link Channel.
-        channel: connection.Channel,
+        channel: cc_link.Channel,
         /// CC-Link Station ID. Start of range, inclusive.
-        start: connection.Id,
+        start: cc_link.Id,
         /// CC-Link Station ID. End of range, inclusive.
-        end: connection.Id,
+        end: cc_link.Id,
     };
 };
 
