@@ -15,6 +15,7 @@ pub const Ww = packed struct(u256) {
     pub const CommandCode = enum(i16) {
         None = 0x0,
         SetLineZero = 0x1,
+        Warmup = 0x2,
         // "By Position" commands calculate slider movement by constant hall
         // sensor position feedback, and is much more precise in destination.
         MoveSliderToAxisByPosition = 0x12,
