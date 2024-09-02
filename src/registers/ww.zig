@@ -13,30 +13,31 @@ pub const Ww = packed struct(u256) {
     _112: u144 = 0,
 
     pub const CommandCode = enum(i16) {
-        None = 0,
-        Home = 17,
+        None = 0x0,
+        SetLineZero = 0x1,
         // "By Position" commands calculate slider movement by constant hall
         // sensor position feedback, and is much more precise in destination.
-        MoveSliderToAxisByPosition = 18,
-        MoveSliderToLocationByPosition = 19,
-        MoveSliderDistanceByPosition = 20,
+        MoveSliderToAxisByPosition = 0x12,
+        MoveSliderToLocationByPosition = 0x13,
+        MoveSliderDistanceByPosition = 0x14,
         // "By Speed" commands calculate slider movement by constant hall
         // sensor speed feedback. It should mostly not be used, as the
         // destination position becomes far too imprecise. However, it is
         // meant to maintain a certain speed while the slider is traveling, and
         // to avoid the requirement of having a known system position.
-        MoveSliderToAxisBySpeed = 21,
-        MoveSliderToLocationBySpeed = 22,
-        MoveSliderDistanceBySpeed = 23,
-        IsolateForward = 24,
-        IsolateBackward = 25,
-        Calibration = 26,
-        RecoverSystemSliders = 27,
-        RecoverSliderAtAxis = 28,
-        PushAxisSliderForward = 30,
-        PushAxisSliderBackward = 31,
-        PullAxisSliderForward = 32,
-        PullAxisSliderBackward = 33,
+        MoveSliderToAxisBySpeed = 0x15,
+        MoveSliderToLocationBySpeed = 0x16,
+        MoveSliderDistanceBySpeed = 0x17,
+        IsolateForward = 0x18,
+        IsolateBackward = 0x19,
+        Calibration = 0x1A,
+        RecoverSystemSliders = 0x1B,
+        RecoverSliderAtAxis = 0x1C,
+        SetSliderIdAtAxis = 0x1D,
+        PushAxisSliderForward = 0x1E,
+        PushAxisSliderBackward = 0x1F,
+        PullAxisSliderForward = 0x20,
+        PullAxisSliderBackward = 0x21,
     };
 
     pub fn format(
