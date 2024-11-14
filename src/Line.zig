@@ -121,6 +121,7 @@ pub fn deinit(self: *Line) void {
     self.* = undefined;
 }
 
+/// Poll registers x and wr on the line
 pub fn poll(line: Line) !void {
     var range_offset: usize = 0;
     for (line.connection) |range| {

@@ -65,11 +65,10 @@ pub fn resetY(
     try mdfunc.devRstEx(path, 0, 0xFF, .DevY, devno);
 }
 
+/// Poll registers X and Wr on the station
 pub fn poll(station: Station) (cc_link.Error || mdfunc.Error)!void {
     try station.pollX();
-    try station.pollY();
     try station.pollWr();
-    try station.pollWw();
 }
 
 pub fn pollX(station: Station) (cc_link.Error || mdfunc.Error)!void {
