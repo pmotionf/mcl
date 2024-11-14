@@ -141,18 +141,6 @@ pub fn poll(line: Line) !void {
             return cc_link.Error.UnexpectedReadSizeX;
         }
 
-        const y_read_bytes = try mdfunc.receiveEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            @as(i32, range.range.start) * @bitSizeOf(Station.Y),
-            std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
-        );
-        if (y_read_bytes != @sizeOf(Station.Y) * range_len) {
-            return cc_link.Error.UnexpectedReadSizeY;
-        }
-
         const wr_read_bytes = try mdfunc.receiveEx(
             path,
             0,
