@@ -121,6 +121,7 @@ pub fn deinit(self: *Line) void {
     self.* = undefined;
 }
 
+/// Poll registers x and wr on the line
 pub fn poll(line: Line) !void {
     var range_offset: usize = 0;
     for (line.connection) |range| {
@@ -139,18 +140,6 @@ pub fn poll(line: Line) !void {
         );
         if (x_read_bytes != @sizeOf(Station.X) * range_len) {
             return cc_link.Error.UnexpectedReadSizeX;
-        }
-
-        const y_read_bytes = try mdfunc.receiveEx(
-            path,
-            0,
-            0xFF,
-            .DevY,
-            @as(i32, range.range.start) * @bitSizeOf(Station.Y),
-            std.mem.sliceAsBytes(line.y[range_offset..][0..range_len]),
-        );
-        if (y_read_bytes != @sizeOf(Station.Y) * range_len) {
-            return cc_link.Error.UnexpectedReadSizeY;
         }
 
         const wr_read_bytes = try mdfunc.receiveEx(
