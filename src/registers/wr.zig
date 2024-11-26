@@ -164,32 +164,7 @@ pub const Wr = packed struct(u256) {
         _: std.fmt.FormatOptions,
         writer: anytype,
     ) !void {
-        try writer.writeAll("Wr: {\n");
-        try writer.print(
-            "\tcommand_response: {},\n",
-            .{wr.command_response},
-        );
-        try writer.writeAll("\t\tpitch_count: {\n");
-        try writer.print("\t\t\taxis1: {},\n", .{wr.pitch_count.axis1});
-        try writer.print("\t\t\taxis2: {},\n", .{wr.pitch_count.axis2});
-        try writer.print("\t\t\taxis3: {},\n", .{wr.pitch_count.axis3});
-        try writer.writeAll("\t\t},\n");
-        try writer.writeAll("\tslider: {\n");
-        for (0..3) |_axis| {
-            const axis: u2 = @intCast(_axis);
-            try writer.print("\t\taxis{}: {{\n", .{axis + 1});
-            const slider = wr.slider.axis(axis);
-            try writer.print("\t\t\tlocation: {d},\n", .{slider.location});
-            try writer.print("\t\t\tid: {},\n", .{slider.id});
-            try writer.print("\t\t\tauxiliary: {},\n", .{slider.auxiliary});
-            try writer.print("\t\t\tenabled: {},\n", .{slider.enabled});
-            try writer.print("\t\t\tquasi: {},\n", .{slider.quasi});
-            try writer.print("\t\t\tzombie: {},\n", .{slider.zombie});
-            try writer.print("\t\t\tstate: {},\n", .{slider.state});
-            try writer.writeAll("\t\t},\n");
-        }
-        try writer.writeAll("\t},\n");
-        try writer.writeAll("}\n");
+        _ = try registers.nestedWrite("Wr", wr, 0, writer);
     }
 };
 

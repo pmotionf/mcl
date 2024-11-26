@@ -47,29 +47,7 @@ pub const Ww = packed struct(u256) {
         _: std.fmt.FormatOptions,
         writer: anytype,
     ) !void {
-        try writer.writeAll("Ww: {\n");
-        try writer.print("\tcommand_code: {},\n", .{ww.command_code});
-        try writer.print(
-            "\tcommand_slider_number: {},\n",
-            .{ww.command_slider_number},
-        );
-        try writer.print(
-            "\tlocation_distance: {d},\n",
-            .{ww.location_distance},
-        );
-        try writer.print(
-            "\ttarget_axis_number: {},\n",
-            .{ww.target_axis_number},
-        );
-        try writer.print(
-            "\tspeed_percentage: {},\n",
-            .{ww.speed_percentage},
-        );
-        try writer.print(
-            "\tacceleration_percentage: {},\n",
-            .{ww.acceleration_percentage},
-        );
-        try writer.writeAll("}\n");
+        _ = try registers.nestedWrite("Ww", ww, 0, writer);
     }
 };
 
