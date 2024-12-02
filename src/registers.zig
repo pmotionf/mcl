@@ -3,6 +3,11 @@ pub const Y = @import("registers/y.zig").Y;
 pub const Wr = @import("registers/wr.zig").Wr;
 pub const Ww = @import("registers/ww.zig").Ww;
 
+x: X,
+y: Y,
+wr: Wr,
+ww: Ww,
+
 const std = @import("std");
 
 pub const Direction = enum(u1) {
