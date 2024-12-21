@@ -118,26 +118,7 @@ pub const X = packed struct(u64) {
             };
         }
     } = .{},
-    control_failure: packed struct(u3) {
-        axis1: bool = false,
-        axis2: bool = false,
-        axis3: bool = false,
-
-        pub fn axis(self: @This(), a: u2) bool {
-            return switch (a) {
-                0 => self.axis1,
-                1 => self.axis2,
-                2 => self.axis3,
-                3 => {
-                    std.log.err(
-                        "Invalid axis index 3 for `control_failure`",
-                        .{},
-                    );
-                    unreachable;
-                },
-            };
-        }
-    } = .{},
+    _32: u3 = 0,
     hall_alarm: packed struct(u6) {
         axis1: packed struct(u2) {
             back: bool = false,
