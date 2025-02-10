@@ -1,6 +1,6 @@
 .{
     .name = "MCL",
-    .version = "0.4.5",
+    .version = "0.4.6",
     .minimum_zig_version = "0.14.0-dev.1392+37df6ba86",
     .dependencies = .{
         .mdfunc = .{
