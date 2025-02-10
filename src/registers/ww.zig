@@ -5,7 +5,7 @@ const registers = @import("../registers.zig");
 /// register bank.
 pub const Ww = packed struct(u256) {
     command: Command = .None,
-    command_slider_number: u16 = 0,
+    carrier_id: u16 = 0,
     location_distance: f32 = 0.0,
     target_axis_number: u16 = 0,
     speed_percentage: u16 = 0,
@@ -15,16 +15,16 @@ pub const Ww = packed struct(u256) {
     pub const Command = enum(i16) {
         None = 0x0,
         SetLineZero = 0x1,
-        // "By Position" commands calculate slider movement by constant hall
+        // "By Position" commands calculate carrier movement by constant hall
         // sensor position feedback, and is much more precise in destination.
         PositionMoveCarrierAxis = 0x12,
         PositionMoveCarrierLocation = 0x13,
         PositionMoveCarrierDistance = 0x14,
-        // "By Speed" commands calculate slider movement by constant hall
+        // "By Speed" commands calculate carrier movement by constant hall
         // sensor speed feedback. It should mostly not be used, as the
         // destination position becomes far too imprecise. However, it is
-        // meant to maintain a certain speed while the slider is traveling, and
-        // to avoid the requirement of having a known system position.
+        // meant to maintain a certain speed while the carrier is traveling,
+        // and to avoid the requirement of having a known system position.
         SpeedMoveCarrierAxis = 0x15,
         SpeedMoveCarrierLocation = 0x16,
         SpeedMoveCarrierDistance = 0x17,

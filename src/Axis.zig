@@ -32,36 +32,36 @@ pub const Id = struct {
 
 /// Whether current axis is auxiliary to provided axis. In the case of line
 /// transition, the pushing axis always has priority to be the main axis due
-/// to a potential invalid slider location on the pulling axis.
+/// to a potential invalid carrier location on the pulling axis.
 pub fn isAuxiliaryTo(self: Axis, other: Axis) bool {
     // Axes do not have to be in same line, as one axis can be "auxiliary" to
     // another during line transition.
-    const self_slider = self.station.wr.slider.axis(self.index.station);
-    const other_slider = other.station.wr.slider.axis(other.index.station);
+    const self_carrier = self.station.wr.carrier.axis(self.index.station);
+    const other_carrier = other.station.wr.carrier.axis(other.index.station);
 
-    if (self_slider.id != other_slider.id) return false;
-    if (self_slider.auxiliary) {
+    if (self_carrier.id != other_carrier.id) return false;
+    if (self_carrier.auxiliary) {
         return true;
-    } else if (other_slider.auxiliary) {
+    } else if (other_carrier.auxiliary) {
         return false;
     }
 
-    if (!self_slider.enabled and other_slider.enabled) {
+    if (!self_carrier.enabled and other_carrier.enabled) {
         return true;
-    } else if (self_slider.enabled and !other_slider.enabled) {
+    } else if (self_carrier.enabled and !other_carrier.enabled) {
         return false;
     }
 
-    if (self_slider.state == .None and other_slider.state != .None) {
+    if (self_carrier.state == .None and other_carrier.state != .None) {
         return true;
-    } else if (self_slider.state != .None and other_slider.state == .None) {
+    } else if (self_carrier.state != .None and other_carrier.state == .None) {
         return false;
     }
 
-    if (self_slider.state == .NextAxisAuxiliary or
-        self_slider.state == .PrevAxisAuxiliary or
-        self_slider.state == .PullBackward or
-        self_slider.state == .PullForward)
+    if (self_carrier.state == .NextAxisAuxiliary or
+        self_carrier.state == .PrevAxisAuxiliary or
+        self_carrier.state == .PullBackward or
+        self_carrier.state == .PullForward)
     {
         return true;
     }
