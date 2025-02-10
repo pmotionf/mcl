@@ -322,16 +322,16 @@ pub fn sendWw(line: Line) (cc_link.Error || mdfunc.Error)!void {
     }
 }
 
-/// Return the axis of the specified slider, if found in the system. If the
-/// slider is split across two axes, then the auxiliary axis will be included
+/// Return the axis of the specified carrier, if found in the system. If the
+/// carrier is split across two axes, then the auxiliary axis will be included
 /// in the result tuple.
-pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
+pub fn search(line: *const Line, carrier_id: u16) ?struct { Axis, ?Axis } {
     var result: struct { Axis, ?Axis } = .{ undefined, null };
 
     for (line.axes) |axis| {
         const station = axis.station;
         const wr = station.wr;
-        if (wr.slider.axis(axis.index.station).id == slider_id) {
+        if (wr.carrier.axis(axis.index.station).id == carrier_id) {
             result.@"0" = axis;
 
             if (axis.index.station == 2 and axis.id.line < line.axes.len) {
@@ -339,9 +339,9 @@ pub fn search(line: *const Line, slider_id: u16) ?struct { Axis, ?Axis } {
                 const next_station = next_axis.station;
                 const next_wr = next_station.wr;
 
-                if (next_wr.slider.axis(
+                if (next_wr.carrier.axis(
                     next_axis.index.station,
-                ).id == slider_id) {
+                ).id == carrier_id) {
                     result.@"1" = next_axis;
                 }
             }
@@ -379,13 +379,13 @@ test "Line search" {
     });
     defer line.deinit();
 
-    line.stations[1].wr.slider.axis3 = .{
+    line.stations[1].wr.carrier.axis3 = .{
         .id = 1,
         .auxiliary = true,
         .enabled = true,
         .state = .NextAxisCompleted,
     };
-    line.stations[2].wr.slider.axis1 = .{
+    line.stations[2].wr.carrier.axis1 = .{
         .id = 1,
         .auxiliary = false,
         .enabled = true,

@@ -37,7 +37,7 @@ pub const Wr = packed struct(u256) {
                 2 => self.axis3,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `slider`",
+                        "Invalid axis index 3 for `carrier`",
                         .{},
                     );
                     unreachable;
@@ -51,9 +51,9 @@ pub const Wr = packed struct(u256) {
         id: u16 = 0,
         auxiliary: bool = false,
         enabled: bool = false,
-        /// Whether slider is currently in quasi-enabled state. Quasi-enabled
-        /// state occurs when slider is first entering a module, before it has
-        /// entered module enough to start servo control.
+        /// Whether carrier is currently in quasi-enabled state. Quasi-enabled
+        /// state occurs when carrier is first entering a module, before it
+        /// has entered module enough to start servo control.
         quasi: bool = false,
         _51: u5 = 0,
         state: State = .None,
@@ -78,13 +78,13 @@ pub const Wr = packed struct(u256) {
             SpdMoveCompleted = 41,
             NextAxisAuxiliary = 43,
             // Note: Next Axis Completed will show even when the next axis is
-            // progressing, if the slider is paused for collision avoidance on the
-            // next axis.
+            // progressing, if the carrier is paused for collision avoidance
+            // on the next axis.
             NextAxisCompleted = 44,
             PrevAxisAuxiliary = 45,
             // Note: Prev Axis Completed will show even when the prev axis is
-            // progressing, if the slider is paused for collision avoidance on the
-            // prev axis.
+            // progressing, if the carrier is paused for collision avoidance
+            // on the prev axis.
             PrevAxisCompleted = 46,
             ForwardIsolationProgressing = 47,
             ForwardIsolationCompleted = 48,
