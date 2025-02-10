@@ -32,7 +32,7 @@ pub const X = packed struct(u64) {
     servo_enabled: bool = false,
     emergency_stop_enabled: bool = false,
     paused: bool = false,
-    axis_slider_info_cleared: bool = false,
+    axis_carrier_info_cleared: bool = false,
     command_received: bool = false,
     axis_enabled: packed struct(u3) {
         axis1: bool = false,
@@ -174,7 +174,7 @@ pub const X = packed struct(u64) {
             };
         }
     } = .{},
-    pulling_slider: packed struct(u3) {
+    pulling_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
@@ -186,7 +186,7 @@ pub const X = packed struct(u64) {
                 2 => self.axis3,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `pulling_slider`",
+                        "Invalid axis index 3 for `pulling_carrier`",
                         .{},
                     );
                     unreachable;

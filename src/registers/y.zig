@@ -7,7 +7,7 @@ const Direction = registers.Direction;
 /// register bank.
 pub const Y = packed struct(u64) {
     cc_link_enable: bool = false,
-    service_enable: bool = false,
+    _1: u1 = 0,
     start_command: bool = false,
     reset_command_received: bool = false,
     _4: u1 = 0,
@@ -38,11 +38,11 @@ pub const Y = packed struct(u64) {
         }
     } = .{},
     clear_errors: bool = false,
-    clear_axis_slider_info: bool = false,
+    clear_axis_carrier_info: bool = false,
     prev_axis_isolate_link: bool = false,
     next_axis_isolate_link: bool = false,
     _15: u1 = 0,
-    reset_pull_slider: packed struct(u3) {
+    reset_pull_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
@@ -54,7 +54,7 @@ pub const Y = packed struct(u64) {
                 2 => self.axis3,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `reset_pull_slider`",
+                        "Invalid axis index 3 for `reset_pull_carrier`",
                         .{},
                     );
                     unreachable;
@@ -73,7 +73,7 @@ pub const Y = packed struct(u64) {
                 2 => self.axis3 = val,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `reset_pull_slider`",
+                        "Invalid axis index 3 for `reset_pull_carrier`",
                         .{},
                     );
                     unreachable;

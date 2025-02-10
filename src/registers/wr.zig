@@ -25,12 +25,12 @@ pub const Wr = packed struct(u256) {
             };
         }
     } = .{},
-    slider: packed struct(u192) {
-        axis1: Slider = .{},
-        axis2: Slider = .{},
-        axis3: Slider = .{},
+    carrier: packed struct(u192) {
+        axis1: Carrier = .{},
+        axis2: Carrier = .{},
+        axis3: Carrier = .{},
 
-        pub fn axis(self: @This(), a: u2) Slider {
+        pub fn axis(self: @This(), a: u2) Carrier {
             return switch (a) {
                 0 => self.axis1,
                 1 => self.axis2,
@@ -46,7 +46,7 @@ pub const Wr = packed struct(u256) {
         }
     } = .{},
 
-    pub const Slider = packed struct(u64) {
+    pub const Carrier = packed struct(u64) {
         location: f32 = 0.0,
         id: u16 = 0,
         auxiliary: bool = false,
@@ -55,18 +55,13 @@ pub const Wr = packed struct(u256) {
         /// state occurs when slider is first entering a module, before it has
         /// entered module enough to start servo control.
         quasi: bool = false,
-        /// Whether slider is currently in zombie state. Zombie state occurs
-        /// when slider is leaving a module, after it has left the module
-        /// enough that servo control is no longer possible.
-        zombie: bool = false,
-        _52: u4 = 0,
+        _51: u5 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
             None = 0,
             WarmupProgressing = 1,
             WarmupCompleted = 2,
-            WarmupFault = 3,
             CurrentBiasProgressing = 4,
             CurrentBiasCompleted = 5,
             PosMoveProgressing = 29,
@@ -94,39 +89,35 @@ pub const Wr = packed struct(u256) {
             ForwardIsolationProgressing = 47,
             ForwardIsolationCompleted = 48,
             Overcurrent = 50,
-            CommunicationError = 51,
+
             PullForward = 52,
             PullForwardCompleted = 53,
-            PullForwardFault = 54,
             PullBackward = 55,
             PullBackwardCompleted = 56,
-            PullBackwardFault = 57,
             BackwardCalibrationProgressing = 58,
             BackwardCalibrationCompleted = 59,
-            BackwardCalibrationFault = 60,
-            ForwardCalibrationFault = 61,
         };
     };
 
     pub const CommandResponseCode = enum(i16) {
         NoError = 0,
         InvalidCommand = 1,
-        SliderNotFound = 2,
+        CarrierNotFound = 2,
         HomingFailed = 3,
         InvalidParameter = 4,
         InvalidSystemState = 5,
-        SliderAlreadyExists = 6,
+        CarrierAlreadyExists = 6,
         InvalidAxis = 7,
 
         pub fn throwError(code: CommandResponseCode) !void {
             return switch (code) {
                 .NoError => {},
                 .InvalidCommand => return error.InvalidCommand,
-                .SliderNotFound => return error.SliderNotFound,
+                .CarrierNotFound => return error.CarrierNotFound,
                 .HomingFailed => return error.HomingFailed,
                 .InvalidParameter => return error.InvalidParameter,
                 .InvalidSystemState => return error.InvalidSystemState,
-                .SliderAlreadyExists => return error.SliderAlreadyExists,
+                .CarrierAlreadyExists => return error.CarrierAlreadyExists,
                 .InvalidAxis => return error.InvalidAxis,
             };
         }
