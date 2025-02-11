@@ -9,26 +9,7 @@ pub const X = packed struct(u64) {
     cc_link_enabled: bool = false,
     _1: u1 = 0,
     ready_for_command: bool = false,
-    servo_active: packed struct(u3) {
-        axis1: bool = false,
-        axis2: bool = false,
-        axis3: bool = false,
-
-        pub fn axis(self: @This(), a: u2) bool {
-            return switch (a) {
-                0 => self.axis1,
-                1 => self.axis2,
-                2 => self.axis3,
-                3 => {
-                    std.log.err(
-                        "Invalid axis index 3 for `servo_active`",
-                        .{},
-                    );
-                    unreachable;
-                },
-            };
-        }
-    } = .{},
+    _3: u3 = 0,
     servo_enabled: bool = false,
     emergency_stop_enabled: bool = false,
     paused: bool = false,
@@ -157,23 +138,7 @@ pub const X = packed struct(u64) {
             };
         }
     } = .{},
-    self_pause: packed struct(u3) {
-        axis1: bool = false,
-        axis2: bool = false,
-        axis3: bool = false,
-
-        pub fn axis(self: @This(), a: u2) bool {
-            return switch (a) {
-                0 => self.axis1,
-                1 => self.axis2,
-                2 => self.axis3,
-                3 => {
-                    std.log.err("Invalid axis index 3 for `self_pause`", .{});
-                    unreachable;
-                },
-            };
-        }
-    } = .{},
+    _41: u3 = 0,
     pulling_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
