@@ -54,18 +54,7 @@ pub const X = packed struct(u64) {
     } = .{},
     vdc_undervoltage_detected: bool = false,
     vdc_overvoltage_detected: bool = false,
-    _19: u4 = 0,
-    transmission_stopped: packed struct(u2) {
-        to_prev: bool = false,
-        to_next: bool = false,
-
-        pub fn to(self: @This(), dir: Direction) bool {
-            return switch (dir) {
-                .backward => self.to_prev,
-                .forward => self.to_next,
-            };
-        }
-    } = .{},
+    _19: u6 = 0,
     errors_cleared: bool = false,
     communication_error: packed struct(u2) {
         to_prev: bool = false,

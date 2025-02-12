@@ -15,28 +15,7 @@ pub const Y = packed struct(u64) {
     servo_release: bool = false,
     emergency_stop: bool = false,
     temporary_pause: bool = false,
-    stop_driver_transmission: packed struct(u2) {
-        to_prev: bool = false,
-        to_next: bool = false,
-
-        pub fn to(self: @This(), dir: Direction) bool {
-            return switch (dir) {
-                .backward => self.to_prev,
-                .forward => self.to_next,
-            };
-        }
-
-        pub fn setTo(
-            self: *align(8:9:8) @This(),
-            dir: Direction,
-            val: bool,
-        ) void {
-            switch (dir) {
-                .backward => self.to_prev = val,
-                .forward => self.to_next = val,
-            }
-        }
-    } = .{},
+    _9: u2 = 0,
     clear_errors: bool = false,
     clear_axis_carrier_info: bool = false,
     prev_axis_isolate_link: bool = false,
