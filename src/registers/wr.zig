@@ -30,6 +30,7 @@ pub const Wr = packed struct(u256) {
     pub const Carrier = packed struct(u64) {
         location: f32 = 0.0,
         id: u16 = 0,
+        arrived: bool = false,
         auxiliary: bool = false,
         enabled: bool = false,
         /// Whether carrier is currently in quasi-enabled state. Quasi-enabled
@@ -38,7 +39,7 @@ pub const Wr = packed struct(u256) {
         quasi: bool = false,
         /// Whether carrier's CAS (collision avoidance system) is triggered.
         cas: bool = false,
-        _52: u4 = 0,
+        _53: u3 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
