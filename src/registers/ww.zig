@@ -7,14 +7,14 @@ pub const Ww = packed struct(u256) {
     command: Command = .None,
     axis: u16 = 0,
     carrier: packed struct(u80) {
-        id: u10 = 0,
-        cas: bool = false,
-        _: u5 = 0,
         target: packed union {
             f32: f32,
             u32: u32,
             i32: i32,
         } = .{ .u32 = 0 },
+        id: u10 = 0,
+        cas: bool = false,
+        _: u5 = 0,
         speed: u16 = 0,
         acceleration: u16 = 0,
     } = .{},
@@ -59,4 +59,13 @@ pub const Ww = packed struct(u256) {
 
 test "Ww" {
     try std.testing.expectEqual(32, @sizeOf(Ww));
+    try std.testing.expectEqual(
+        32,
+        @bitSizeOf(
+            @FieldType(
+                @FieldType(Ww, "carrier"),
+                "target",
+            ),
+        ),
+    );
 }
