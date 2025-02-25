@@ -37,9 +37,11 @@ pub const Wr = packed struct(u256) {
         /// state occurs when carrier is first entering a module, before it
         /// has entered module enough to start servo control.
         quasi: bool = false,
-        /// Whether carrier's CAS (collision avoidance system) is triggered.
+        /// Whether carrier's CAS (collision avoidance system) is enabled.
         cas: bool = false,
-        _53: u3 = 0,
+        /// Whether carrier's CAS (collision avoidance system) is triggered.
+        cas_triggered: bool = false,
+        _54: u2 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
