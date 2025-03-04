@@ -5,26 +5,7 @@ const registers = @import("../registers.zig");
 /// register bank.
 pub const Wr = packed struct(u256) {
     command_response: CommandResponseCode = .NoError,
-    pitch_count: packed struct(u48) {
-        axis1: i16 = 0,
-        axis2: i16 = 0,
-        axis3: i16 = 0,
-
-        pub fn axis(self: @This(), a: u2) i16 {
-            return switch (a) {
-                0 => self.axis1,
-                1 => self.axis2,
-                2 => self.axis3,
-                3 => {
-                    std.log.err(
-                        "Invalid axis index 3 for `pitch_count`",
-                        .{},
-                    );
-                    unreachable;
-                },
-            };
-        }
-    } = .{},
+    _16: u48 = 0,
     carrier: packed struct(u192) {
         axis1: Carrier = .{},
         axis2: Carrier = .{},
@@ -49,53 +30,55 @@ pub const Wr = packed struct(u256) {
     pub const Carrier = packed struct(u64) {
         location: f32 = 0.0,
         id: u16 = 0,
+        arrived: bool = false,
         auxiliary: bool = false,
         enabled: bool = false,
         /// Whether carrier is currently in quasi-enabled state. Quasi-enabled
         /// state occurs when carrier is first entering a module, before it
         /// has entered module enough to start servo control.
         quasi: bool = false,
-        _51: u5 = 0,
+        cas: packed struct {
+            /// Whether carrier's CAS (collision avoidance system) is enabled.
+            enabled: bool = false,
+            /// Whether carrier's CAS (collision avoidance system) is triggered.
+            triggered: bool = false,
+        } = .{},
+        _54: u2 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
-            None = 0,
-            WarmupProgressing = 1,
-            WarmupCompleted = 2,
-            CurrentBiasProgressing = 4,
-            CurrentBiasCompleted = 5,
-            PosMoveProgressing = 29,
-            PosMoveCompleted = 30,
-            ForwardCalibrationProgressing = 32,
-            ForwardCalibrationCompleted = 33,
-            BackwardIsolationProgressing = 34,
-            BackwardIsolationCompleted = 35,
-            ForwardRestartProgressing = 36,
-            ForwardRestartCompleted = 37,
-            BackwardRestartProgressing = 38,
-            BackwardRestartCompleted = 39,
-            SpdMoveProgressing = 40,
-            SpdMoveCompleted = 41,
-            NextAxisAuxiliary = 43,
-            // Note: Next Axis Completed will show even when the next axis is
-            // progressing, if the carrier is paused for collision avoidance
-            // on the next axis.
-            NextAxisCompleted = 44,
-            PrevAxisAuxiliary = 45,
-            // Note: Prev Axis Completed will show even when the prev axis is
-            // progressing, if the carrier is paused for collision avoidance
-            // on the prev axis.
-            PrevAxisCompleted = 46,
-            ForwardIsolationProgressing = 47,
-            ForwardIsolationCompleted = 48,
-            Overcurrent = 50,
+            None = 0x0,
 
-            PullForward = 52,
-            PullForwardCompleted = 53,
-            PullBackward = 55,
-            PullBackwardCompleted = 56,
-            BackwardCalibrationProgressing = 58,
-            BackwardCalibrationCompleted = 59,
+            WarmupProgressing,
+            WarmupCompleted,
+
+            PosMoveProgressing = 0x4,
+            PosMoveCompleted,
+            SpdMoveProgressing,
+            SpdMoveCompleted,
+            Auxiliary,
+            AuxiliaryCompleted,
+
+            ForwardCalibrationProgressing = 0xA,
+            ForwardCalibrationCompleted,
+            BackwardCalibrationProgressing,
+            BackwardCalibrationCompleted,
+
+            ForwardIsolationProgressing = 0x10,
+            ForwardIsolationCompleted,
+            BackwardIsolationProgressing,
+            BackwardIsolationCompleted,
+            ForwardRestartProgressing,
+            ForwardRestartCompleted,
+            BackwardRestartProgressing,
+            BackwardRestartCompleted,
+
+            PullForward = 0x1A,
+            PullForwardCompleted,
+            PullBackward,
+            PullBackwardCompleted,
+
+            Overcurrent = 0x1F,
         };
     };
 
