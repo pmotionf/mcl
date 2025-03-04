@@ -3,7 +3,7 @@ const Station = @This();
 const std = @import("std");
 const mdfunc = @import("mdfunc");
 const registers = @import("registers.zig");
-const connection = @import("connection.zig");
+const cclink = @import("cclink.zig");
 const Line = @import("Line.zig");
 const Axis = @import("Axis.zig");
 
@@ -27,8 +27,8 @@ wr: *Wr,
 ww: *Ww,
 
 connection: struct {
-    channel: connection.Channel,
-    index: connection.Index,
+    channel: cclink.Channel,
+    index: cclink.Index,
 },
 
 pub fn prev(station: Station) ?Station {
@@ -47,7 +47,7 @@ pub fn setY(
     station: Station,
     /// Bitwise offset of desired field (0..).
     offset: u6,
-) (connection.Error || mdfunc.Error)!void {
+) (cclink.Error || mdfunc.Error)!void {
     const path: i32 = try station.connection.channel.openedPath();
     const devno: i32 = @as(i32, station.connection.index) * @bitSizeOf(Y) +
         @as(i32, offset);
@@ -58,21 +58,21 @@ pub fn resetY(
     station: Station,
     /// Bitwise offset of desired field (0..).
     offset: u6,
-) (connection.Error || mdfunc.Error)!void {
+) (cclink.Error || mdfunc.Error)!void {
     const path: i32 = try station.connection.channel.openedPath();
     const devno: i32 = @as(i32, station.connection.index) * @bitSizeOf(Y) +
         @as(i32, offset);
     try mdfunc.devRstEx(path, 0, 0xFF, .DevY, devno);
 }
 
-pub fn poll(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn poll(station: Station) (cclink.Error || mdfunc.Error)!void {
     try station.pollX();
     try station.pollY();
     try station.pollWr();
     try station.pollWw();
 }
 
-pub fn pollX(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn pollX(station: Station) (cclink.Error || mdfunc.Error)!void {
     const path = try station.connection.channel.openedPath();
     const read_bytes = try mdfunc.receiveEx(
         path,
@@ -83,11 +83,11 @@ pub fn pollX(station: Station) (connection.Error || mdfunc.Error)!void {
         std.mem.asBytes(station.x),
     );
     if (read_bytes != @sizeOf(X)) {
-        return connection.Error.UnexpectedReadSizeX;
+        return cclink.Error.UnexpectedReadSizeX;
     }
 }
 
-pub fn pollY(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn pollY(station: Station) (cclink.Error || mdfunc.Error)!void {
     const path = try station.connection.channel.openedPath();
     const read_bytes = try mdfunc.receiveEx(
         path,
@@ -98,11 +98,11 @@ pub fn pollY(station: Station) (connection.Error || mdfunc.Error)!void {
         std.mem.asBytes(station.y),
     );
     if (read_bytes != @sizeOf(Y)) {
-        return connection.Error.UnexpectedReadSizeY;
+        return cclink.Error.UnexpectedReadSizeY;
     }
 }
 
-pub fn pollWr(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn pollWr(station: Station) (cclink.Error || mdfunc.Error)!void {
     const path = try station.connection.channel.openedPath();
     const read_bytes = try mdfunc.receiveEx(
         path,
@@ -113,11 +113,11 @@ pub fn pollWr(station: Station) (connection.Error || mdfunc.Error)!void {
         std.mem.asBytes(station.wr),
     );
     if (read_bytes != @sizeOf(Wr)) {
-        return connection.Error.UnexpectedReadSizeWr;
+        return cclink.Error.UnexpectedReadSizeWr;
     }
 }
 
-pub fn pollWw(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn pollWw(station: Station) (cclink.Error || mdfunc.Error)!void {
     const path = try station.connection.channel.openedPath();
     const read_bytes = try mdfunc.receiveEx(
         path,
@@ -128,16 +128,16 @@ pub fn pollWw(station: Station) (connection.Error || mdfunc.Error)!void {
         std.mem.asBytes(station.ww),
     );
     if (read_bytes != @sizeOf(Wr)) {
-        return connection.Error.UnexpectedReadSizeWr;
+        return cclink.Error.UnexpectedReadSizeWr;
     }
 }
 
-pub fn send(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn send(station: Station) (cclink.Error || mdfunc.Error)!void {
     try station.sendWw();
     try station.sendY();
 }
 
-pub fn sendY(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn sendY(station: Station) (cclink.Error || mdfunc.Error)!void {
     const path = try station.connection.channel.openedPath();
     const sent_bytes = try mdfunc.sendEx(
         path,
@@ -148,11 +148,11 @@ pub fn sendY(station: Station) (connection.Error || mdfunc.Error)!void {
         std.mem.asBytes(station.y),
     );
     if (sent_bytes != @sizeOf(Y)) {
-        return connection.Error.UnexpectedSendSizeY;
+        return cclink.Error.UnexpectedSendSizeY;
     }
 }
 
-pub fn sendWw(station: Station) (connection.Error || mdfunc.Error)!void {
+pub fn sendWw(station: Station) (cclink.Error || mdfunc.Error)!void {
     const path = try station.connection.channel.openedPath();
     const sent_bytes = try mdfunc.sendEx(
         path,
@@ -163,6 +163,6 @@ pub fn sendWw(station: Station) (connection.Error || mdfunc.Error)!void {
         std.mem.asBytes(station.ww),
     );
     if (sent_bytes != @sizeOf(Ww)) {
-        return connection.Error.UnexpectedSendSizeWw;
+        return cclink.Error.UnexpectedSendSizeWw;
     }
 }

@@ -3,7 +3,7 @@ const mdfunc = @import("mdfunc");
 const v = @import("version");
 
 pub const registers = @import("registers.zig");
-pub const connection = @import("connection.zig");
+pub const connection = @import("cclink.zig");
 
 pub const Config = @import("Config.zig");
 pub const Axis = @import("Axis.zig");
