@@ -13,7 +13,7 @@ pub const Ww = packed struct(u256) {
             i32: i32,
         } = .{ .u32 = 0 },
         id: u10 = 0,
-        cas: bool = false,
+        enable_cas: bool = false,
         _: u5 = 0,
         speed: u16 = 0,
         acceleration: u16 = 0,

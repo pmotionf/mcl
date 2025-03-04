@@ -58,11 +58,7 @@ pub fn isAuxiliaryTo(self: Axis, other: Axis) bool {
         return false;
     }
 
-    if (self_carrier.state == .NextAxisAuxiliary or
-        self_carrier.state == .PrevAxisAuxiliary or
-        self_carrier.state == .PullBackward or
-        self_carrier.state == .PullForward)
-    {
+    if (self_carrier.state == .Auxiliary) {
         return true;
     }
 

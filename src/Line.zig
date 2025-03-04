@@ -383,7 +383,7 @@ test "Line search" {
         .id = 1,
         .auxiliary = true,
         .enabled = true,
-        .state = .NextAxisCompleted,
+        .state = .Auxiliary,
     };
     line.stations[2].wr.carrier.axis1 = .{
         .id = 1,

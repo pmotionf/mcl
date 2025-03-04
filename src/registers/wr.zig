@@ -37,51 +37,48 @@ pub const Wr = packed struct(u256) {
         /// state occurs when carrier is first entering a module, before it
         /// has entered module enough to start servo control.
         quasi: bool = false,
-        /// Whether carrier's CAS (collision avoidance system) is enabled.
-        cas: bool = false,
-        /// Whether carrier's CAS (collision avoidance system) is triggered.
-        cas_triggered: bool = false,
+        cas: packed struct {
+            /// Whether carrier's CAS (collision avoidance system) is enabled.
+            enabled: bool = false,
+            /// Whether carrier's CAS (collision avoidance system) is triggered.
+            triggered: bool = false,
+        } = .{},
         _54: u2 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
-            None = 0,
-            WarmupProgressing = 1,
-            WarmupCompleted = 2,
-            CurrentBiasProgressing = 4,
-            CurrentBiasCompleted = 5,
-            PosMoveProgressing = 29,
-            PosMoveCompleted = 30,
-            ForwardCalibrationProgressing = 32,
-            ForwardCalibrationCompleted = 33,
-            BackwardIsolationProgressing = 34,
-            BackwardIsolationCompleted = 35,
-            ForwardRestartProgressing = 36,
-            ForwardRestartCompleted = 37,
-            BackwardRestartProgressing = 38,
-            BackwardRestartCompleted = 39,
-            SpdMoveProgressing = 40,
-            SpdMoveCompleted = 41,
-            NextAxisAuxiliary = 43,
-            // Note: Next Axis Completed will show even when the next axis is
-            // progressing, if the carrier is paused for collision avoidance
-            // on the next axis.
-            NextAxisCompleted = 44,
-            PrevAxisAuxiliary = 45,
-            // Note: Prev Axis Completed will show even when the prev axis is
-            // progressing, if the carrier is paused for collision avoidance
-            // on the prev axis.
-            PrevAxisCompleted = 46,
-            ForwardIsolationProgressing = 47,
-            ForwardIsolationCompleted = 48,
-            Overcurrent = 50,
+            None = 0x0,
 
-            PullForward = 52,
-            PullForwardCompleted = 53,
-            PullBackward = 55,
-            PullBackwardCompleted = 56,
-            BackwardCalibrationProgressing = 58,
-            BackwardCalibrationCompleted = 59,
+            WarmupProgressing,
+            WarmupCompleted,
+
+            PosMoveProgressing = 0x4,
+            PosMoveCompleted,
+            SpdMoveProgressing,
+            SpdMoveCompleted,
+            Auxiliary,
+            AuxiliaryCompleted,
+
+            ForwardCalibrationProgressing = 0xA,
+            ForwardCalibrationCompleted,
+            BackwardCalibrationProgressing,
+            BackwardCalibrationCompleted,
+
+            ForwardIsolationProgressing = 0x10,
+            ForwardIsolationCompleted,
+            BackwardIsolationProgressing,
+            BackwardIsolationCompleted,
+            ForwardRestartProgressing,
+            ForwardRestartCompleted,
+            BackwardRestartProgressing,
+            BackwardRestartCompleted,
+
+            PullForward = 0x1A,
+            PullForwardCompleted,
+            PullBackward,
+            PullBackwardCompleted,
+
+            Overcurrent = 0x1F,
         };
     };
 
