@@ -39,6 +39,7 @@ pub const Ww = packed struct(u256) {
         PushAxisSliderBackward = 31,
         PullAxisSliderForward = 32,
         PullAxisSliderBackward = 33,
+        MoveSliderChain = 34,
     };
 
     pub fn format(
