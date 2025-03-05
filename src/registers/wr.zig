@@ -181,6 +181,12 @@ pub const Wr = packed struct(u256) {
         BackwardCalibrationCompleted = 59,
         BackwardCalibrationFault = 60,
         ForwardCalibrationFault = 61,
+
+        ChainProgressing = 62,
+        ChainCompleted = 63,
+        ChainFault = 64,
+        ChainSlaveProgressing = 65,
+        ChainSlaveCompleted = 66,
     };
 
     pub fn format(
