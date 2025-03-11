@@ -29,7 +29,8 @@ pub const Wr = packed struct(u256) {
 
     pub const Carrier = packed struct(u64) {
         location: f32 = 0.0,
-        id: u16 = 0,
+        id: u10 = 0,
+        _42: u6 = 0,
         arrived: bool = false,
         auxiliary: bool = false,
         enabled: bool = false,
@@ -82,7 +83,7 @@ pub const Wr = packed struct(u256) {
         };
     };
 
-    pub const CommandResponseCode = enum(i16) {
+    pub const CommandResponseCode = enum(u16) {
         NoError = 0,
         InvalidCommand = 1,
         CarrierNotFound = 2,
