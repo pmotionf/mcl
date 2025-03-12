@@ -39,7 +39,6 @@ pub const Ww = packed struct(u256) {
         IsolateForward = 0x18,
         IsolateBackward = 0x19,
         Calibration = 0x1A,
-        RecoverCarrierAtAxis = 0x1C,
         SetCarrierIdAtAxis = 0x1D,
         PushAxisCarrierForward = 0x1E,
         PushAxisCarrierBackward = 0x1F,
