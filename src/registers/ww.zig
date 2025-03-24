@@ -40,10 +40,16 @@ pub const Ww = packed struct(u256) {
         IsolateBackward = 0x19,
         Calibration = 0x1A,
         SetCarrierIdAtAxis = 0x1D,
-        PushAxisCarrierForward = 0x1E,
-        PushAxisCarrierBackward = 0x1F,
-        PullAxisCarrierForward = 0x20,
-        PullAxisCarrierBackward = 0x21,
+        PushForward = 0x1E,
+        PushBackward = 0x1F,
+        PullForward = 0x20,
+        PullBackward = 0x21,
+        PushTransitionForward = 0x22,
+        PushTransitionBackward = 0x23,
+        PullTransitionAxisForward = 0x24,
+        PullTransitionAxisBackward = 0x25,
+        PullTransitionLocationForward = 0x26,
+        PullTransitionLocationBackward = 0x27,
     };
 
     pub fn format(
