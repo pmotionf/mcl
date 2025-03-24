@@ -74,10 +74,12 @@ pub const Wr = packed struct(u256) {
             BackwardRestartProgressing,
             BackwardRestartCompleted,
 
-            PullForward = 0x1A,
+            PullForward = 0x19,
             PullForwardCompleted,
             PullBackward,
             PullBackwardCompleted,
+            Push,
+            PushCompleted,
 
             Overcurrent = 0x1F,
         };
