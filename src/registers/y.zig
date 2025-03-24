@@ -62,6 +62,45 @@ pub const Y = packed struct(u64) {
             }
         }
     } = .{},
+    reset_push_carrier: packed struct(u3) {
+        axis1: bool = false,
+        axis2: bool = false,
+        axis3: bool = false,
+
+        pub fn axis(self: @This(), local_axis: u2) bool {
+            return switch (local_axis) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `reset_push_carrier`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+
+        pub fn setAxis(
+            self: *align(8:16:8) @This(),
+            local_axis: u2,
+            val: bool,
+        ) void {
+            switch (local_axis) {
+                0 => self.axis1 = val,
+                1 => self.axis2 = val,
+                2 => self.axis3 = val,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `reset_push_carrier`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            }
+        }
+    } = .{},
     recovery_use_hall_sensor: packed struct(u2) {
         back: bool = false,
         front: bool = false,
@@ -84,7 +123,7 @@ pub const Y = packed struct(u64) {
             }
         }
     } = .{},
-    _21: u43 = 0,
+    _24: u40 = 0,
 
     pub fn format(
         y: Y,

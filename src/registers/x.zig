@@ -111,7 +111,7 @@ pub const X = packed struct(u64) {
             };
         }
     } = .{},
-    pulling_carrier: packed struct(u3) {
+    wait_pull_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
@@ -123,7 +123,27 @@ pub const X = packed struct(u64) {
                 2 => self.axis3,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `pulling_carrier`",
+                        "Invalid axis index 3 for `wait_pull_carrier`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+    } = .{},
+    wait_push_carrier: packed struct(u3) {
+        axis1: bool = false,
+        axis2: bool = false,
+        axis3: bool = false,
+
+        pub fn axis(self: @This(), a: u2) bool {
+            return switch (a) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `wait_push_carrier`",
                         .{},
                     );
                     unreachable;
@@ -132,7 +152,7 @@ pub const X = packed struct(u64) {
         }
     } = .{},
     control_loop_max_time_exceeded: bool = false,
-    _0x24: u12 = 0,
+    _0x27: u9 = 0,
     _0x30: u8 = 0,
     initial_data_processing_request: bool = false,
     initial_data_setting_complete: bool = false,
