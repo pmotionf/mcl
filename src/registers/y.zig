@@ -83,7 +83,7 @@ pub const Y = packed struct(u64) {
         }
 
         pub fn setAxis(
-            self: *align(8:16:8) @This(),
+            self: *align(8:19:8) @This(),
             local_axis: u2,
             val: bool,
         ) void {
