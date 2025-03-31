@@ -5,7 +5,19 @@ const registers = @import("../registers.zig");
 /// register bank.
 pub const Wr = packed struct(u256) {
     command_response: CommandResponseCode = .NoError,
-    _16: u48 = 0,
+    _16: u16 = 0,
+    received_backward: packed struct(u16) {
+        id: u10 = 0,
+        kind: DriverMessageKind = .none,
+        failed_bcc: bool = false,
+        _: u1 = 0,
+    } = .{},
+    received_forward: packed struct(u16) {
+        id: u10 = 0,
+        kind: DriverMessageKind = .none,
+        failed_bcc: bool = false,
+        _: u1 = 0,
+    } = .{},
     carrier: packed struct(u192) {
         axis1: Carrier = .{},
         axis2: Carrier = .{},
@@ -117,6 +129,20 @@ pub const Wr = packed struct(u256) {
     ) !void {
         _ = try registers.nestedWrite("Wr", wr, 0, writer);
     }
+};
+
+pub const DriverMessageKind = enum(u4) {
+    none,
+    update,
+    prof_req,
+    prof_noti,
+    update_cali_home,
+    update_mech_angle_offset,
+    on_pos_req,
+    on_pos_rsp,
+    off_pos_req,
+    off_pos_rsp,
+    clear_carrier_info,
 };
 
 test "Wr" {
