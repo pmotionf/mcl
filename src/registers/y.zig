@@ -19,10 +19,7 @@ pub const Y = packed struct(u64) {
     temporary_pause: bool = false,
     _0x9: u2 = 0,
     clear_errors: bool = false,
-    _0xC: u1 = 0,
-    prev_axis_isolate_link: bool = false,
-    next_axis_isolate_link: bool = false,
-    _0xF: u1 = 0,
+    _0xC: u4 = 0,
     reset_pull_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
@@ -101,29 +98,7 @@ pub const Y = packed struct(u64) {
             }
         }
     } = .{},
-    recovery_use_hall_sensor: packed struct(u2) {
-        back: bool = false,
-        front: bool = false,
-
-        pub fn side(self: @This(), dir: Direction) bool {
-            return switch (dir) {
-                .backward => self.back,
-                .forward => self.front,
-            };
-        }
-
-        pub fn setSide(
-            self: *align(8:19:8) @This(),
-            dir: Direction,
-            val: bool,
-        ) void {
-            switch (dir) {
-                .backward => self.back = val,
-                .forward => self.front = val,
-            }
-        }
-    } = .{},
-    _24: u40 = 0,
+    _22: u42 = 0,
 
     pub fn format(
         y: Y,
