@@ -1,6 +1,6 @@
 const std = @import("std");
 const mdfunc = @import("mdfunc");
-const v = @import("version");
+const build = @import("build.zig.zon");
 
 pub const registers = @import("registers.zig");
 pub const cc_link = @import("cc_link.zig");
@@ -11,7 +11,7 @@ pub const Station = @import("Station.zig");
 pub const Line = @import("Line.zig");
 
 pub const version: std.SemanticVersion =
-    std.SemanticVersion.parse(v.mcl_version) catch unreachable;
+    std.SemanticVersion.parse(build.version) catch unreachable;
 
 pub var lines: []const Line = &.{};
 

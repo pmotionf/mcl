@@ -4,10 +4,6 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const version = b.addModule("version", .{
-        .root_source_file = b.path("version.zig"),
-    });
-
     const mdfunc_lib_path = b.option(
         []const u8,
         "mdfunc",
@@ -30,11 +26,17 @@ pub fn build(b: *std.Build) !void {
         .mock = mdfunc_mock_build,
     });
 
+    const build_zig_zon = b.createModule(.{
+        .root_source_file = b.path("build.zig.zon"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     _ = b.addModule("mcl", .{
         .root_source_file = b.path("src/mcl.zig"),
         .imports = &.{
-            .{ .name = "version", .module = version },
             .{ .name = "mdfunc", .module = mdfunc.module("mdfunc") },
+            .{ .name = "build.zig.zon", .module = build_zig_zon },
         },
     });
 
@@ -50,8 +52,8 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    unit_tests.root_module.addImport("version", version);
     unit_tests.root_module.addImport("mdfunc", mdfunc_mock.module("mdfunc"));
+    unit_tests.root_module.addImport("build.zig.zon", build_zig_zon);
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
     const test_step = b.step("test", "Run unit tests");
