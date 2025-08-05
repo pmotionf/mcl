@@ -100,12 +100,7 @@ pub const Y = packed struct(u64) {
     } = .{},
     _22: u42 = 0,
 
-    pub fn format(
-        y: Y,
-        comptime _: []const u8,
-        _: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
+    pub fn format(y: Y, writer: anytype) !void {
         _ = try registers.nestedWrite("Y", y, 0, writer);
     }
 };

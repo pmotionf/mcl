@@ -160,12 +160,7 @@ pub const X = packed struct(u64) {
     remote_ready: bool = false,
     _60: u4 = 0,
 
-    pub fn format(
-        x: X,
-        comptime _: []const u8,
-        _: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
+    pub fn format(x: X, writer: anytype) !void {
         _ = try registers.nestedWrite("X", x, 0, writer);
     }
 };

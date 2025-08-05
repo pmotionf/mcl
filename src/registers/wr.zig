@@ -121,12 +121,7 @@ pub const Wr = packed struct(u256) {
         }
     };
 
-    pub fn format(
-        wr: Wr,
-        comptime _: []const u8,
-        _: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
+    pub fn format(wr: Wr, writer: anytype) !void {
         _ = try registers.nestedWrite("Wr", wr, 0, writer);
     }
 };

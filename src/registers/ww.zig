@@ -54,12 +54,7 @@ pub const Ww = packed struct(u256) {
         PullTransitionLocationBackward = 0x27,
     };
 
-    pub fn format(
-        ww: Ww,
-        comptime _: []const u8,
-        _: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
+    pub fn format(ww: Ww, writer: anytype) !void {
         _ = try registers.nestedWrite("Ww", ww, 0, writer);
     }
 };
