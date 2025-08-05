@@ -2,11 +2,11 @@
     .name = .mcl,
     .version = "0.7.0",
     .fingerprint = 0xb59a9476469c376d,
-    .minimum_zig_version = "0.15.0-dev.190+bfbf4badd",
+    .minimum_zig_version = "0.15.0-dev.1411+163e9ce7d",
     .dependencies = .{
         .mdfunc = .{
-            .url = "https://github.com/pmotionf/mdfunc.zig/archive/223e5d6.tar.gz",
-            .hash = "mdfunc-0.0.5-k9D_qKysAAB6Asi7ooquTXU2LCo29m_N6VmXCSzcUQE2",
+            .url = "https://github.com/pmotionf/mdfunc.zig/archive/52d8d69.tar.gz",
+            .hash = "mdfunc-0.0.5-k9D_qGSsAABmNnoS4mOsUPoBxo69D2qurk3OL9HdsqIv",
         },
     },
     .paths = .{
