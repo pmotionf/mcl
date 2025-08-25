@@ -43,7 +43,7 @@ pub fn init(
     config: Config.Line,
 ) !void {
     result.index = line_index;
-    result.id = line_index + 1;
+    result.id = @as(Id, line_index) + 1;
     result.connection = try allocator.alloc(Range, config.ranges.len);
     errdefer allocator.free(result.connection);
     result.axes = try allocator.alloc(Axis, config.axes);
