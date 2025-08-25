@@ -2,7 +2,7 @@
     .name = .mcl,
     .version = "0.7.0",
     .fingerprint = 0xb59a9476469c376d,
-    .minimum_zig_version = "0.15.0-dev.1411+163e9ce7d",
+    .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .mdfunc = .{
             .url = "https://github.com/pmotionf/mdfunc.zig/archive/52d8d69.tar.gz",
