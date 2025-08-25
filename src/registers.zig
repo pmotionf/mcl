@@ -99,8 +99,7 @@ pub fn nestedWrite(
 test nestedWrite {
     const example_x: X = .{};
     var result_buffer: [2048]u8 = undefined;
-    var buf = std.io.fixedBufferStream(&result_buffer);
-    const buf_writer = buf.writer();
+    var writer: std.Io.Writer = .fixed(&result_buffer);
     try std.testing.expectEqualStrings(
         \\hall_alarm: {
         \\    axis1: {
@@ -122,7 +121,7 @@ test nestedWrite {
             "hall_alarm",
             example_x.hall_alarm,
             0,
-            buf_writer,
+            &writer,
         )],
     );
 }
