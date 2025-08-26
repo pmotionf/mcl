@@ -64,8 +64,8 @@ pub fn init(
     @memset(result.wr, std.mem.zeroInit(Station.Wr, .{}));
     @memset(result.ww, std.mem.zeroInit(Station.Ww, .{}));
 
-    var num_axes: usize = 0;
-
+    var num_axes: Axis.Id.Line = 0;
+    var num_stations: Station.Id = 0;
     for (config.ranges, 0..) |range, range_i| {
         result.connection[range_i] = .{
             .channel = range.channel,
@@ -74,37 +74,38 @@ pub fn init(
                 .end = @intCast(range.end - 1),
             },
         };
-        for (0..range.end - range.start + 1) |station_i| {
+        for (range.start - 1..range.end) |station_i| {
             const start_num_axes = num_axes;
             for (0..3) |axis_i| {
                 if (num_axes >= result.axes.len) break;
                 result.axes[num_axes] = .{
-                    .station = &result.stations[station_i],
+                    .station = &result.stations[num_stations],
                     .index = .{
                         .station = @intCast(axis_i),
-                        .line = @intCast(num_axes),
+                        .line = num_axes,
                     },
                     .id = .{
                         .station = @intCast(axis_i + 1),
-                        .line = @intCast(num_axes + 1),
+                        .line = num_axes + 1,
                     },
                 };
                 num_axes += 1;
             }
-            result.stations[station_i] = .{
+            result.stations[num_stations] = .{
                 .line = result,
-                .index = @intCast(station_i),
-                .id = @intCast(station_i + 1),
-                .x = &result.x[station_i],
-                .y = &result.y[station_i],
-                .wr = &result.wr[station_i],
-                .ww = &result.ww[station_i],
+                .index = @intCast(num_stations),
+                .id = num_stations + 1,
+                .x = &result.x[num_stations],
+                .y = &result.y[num_stations],
+                .wr = &result.wr[num_stations],
+                .ww = &result.ww[num_stations],
                 .axes = result.axes[start_num_axes..num_axes],
                 .connection = .{
                     .channel = range.channel,
-                    .index = @intCast(range.start - 1 + station_i),
+                    .index = @intCast(station_i),
                 },
             };
+            num_stations += 1;
         }
     }
     result.allocator = allocator;
@@ -417,4 +418,24 @@ test {
 
     line.stations[1].y.cc_link_enable = true;
     try std.testing.expectEqual(true, line.y[1].cc_link_enable);
+}
+
+test "Init 1 line with 256 drivers" {
+    var ranges: [4]Config.Line.Range = .{
+        .{ .channel = .cc_link_1slot, .start = 1, .end = 64 },
+        .{ .channel = .cc_link_2slot, .start = 1, .end = 64 },
+        .{ .channel = .cc_link_3slot, .start = 1, .end = 64 },
+        .{ .channel = .cc_link_4slot, .start = 1, .end = 64 },
+    };
+    var line: Line = undefined;
+    try Line.init(
+        std.testing.allocator,
+        &line,
+        0,
+        .{
+            .axes = 768,
+            .ranges = &ranges,
+        },
+    );
+    defer line.deinit();
 }
