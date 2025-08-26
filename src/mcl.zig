@@ -86,3 +86,29 @@ pub fn close() !void {
 test {
     std.testing.refAllDeclsRecursive(@This());
 }
+
+test "Init with 256 lines with 1 driver on each line" {
+    var config: [256]Config.Line = undefined;
+    for (&config) |*line| {
+        line.ranges = try std.testing.allocator.alloc(Config.Line.Range, 1);
+    }
+    defer for (&config) |*line| {
+        std.testing.allocator.free(line.ranges);
+    };
+    for (&config, 0..) |*line, i| {
+        line.*.axes = 3;
+        for (line.ranges) |*range| {
+            range.*.channel = switch (i) {
+                0...63 => .cc_link_1slot,
+                64...127 => .cc_link_2slot,
+                128...191 => .cc_link_3slot,
+                192...255 => .cc_link_4slot,
+                else => unreachable,
+            };
+            range.*.start = @intCast(i % 64 + 1);
+            range.*.end = @intCast(i % 64 + 1);
+        }
+    }
+    try init(std.testing.allocator, .{ .lines = &config });
+    defer deinit();
+}
