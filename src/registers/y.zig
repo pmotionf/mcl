@@ -7,20 +7,89 @@ const Direction = registers.Direction;
 /// register bank.
 pub const Y = packed struct(u64) {
     cc_link_enable: bool = false,
-    start_command: bool = false,
-    reset_command_received: bool = false,
-    /// Clear carrier information at axis specified in "Ww" register.
-    axis_clear_carrier: bool = false,
-    /// Clear all carriers recognized by driver.
-    clear_carrier: bool = false,
-    axis_servo_release: bool = false,
-    servo_release: bool = false,
     emergency_stop: bool = false,
     temporary_pause: bool = false,
-    _0x9: u2 = 0,
+    release_motor: packed struct(u3) {
+        axis1: bool = false,
+        axis2: bool = false,
+        axis3: bool = false,
+
+        pub fn axis(self: @This(), local_axis: u2) bool {
+            return switch (local_axis) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `release_motor`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+
+        pub fn setAxis(
+            self: *align(8:3:8) @This(),
+            local_axis: u2,
+            val: bool,
+        ) void {
+            switch (local_axis) {
+                0 => self.axis1 = val,
+                1 => self.axis2 = val,
+                2 => self.axis3 = val,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `release_motor`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            }
+        }
+    } = .{},
+    deinitialize_carrier: packed struct(u3) {
+        axis1: bool = false,
+        axis2: bool = false,
+        axis3: bool = false,
+
+        pub fn axis(self: @This(), local_axis: u2) bool {
+            return switch (local_axis) {
+                0 => self.axis1,
+                1 => self.axis2,
+                2 => self.axis3,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `deinitialize_carrier`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            };
+        }
+
+        pub fn setAxis(
+            self: *align(8:6:8) @This(),
+            local_axis: u2,
+            val: bool,
+        ) void {
+            switch (local_axis) {
+                0 => self.axis1 = val,
+                1 => self.axis2 = val,
+                2 => self.axis3 = val,
+                3 => {
+                    std.log.err(
+                        "Invalid axis index 3 for `deinitialize_carrier`",
+                        .{},
+                    );
+                    unreachable;
+                },
+            }
+        }
+    } = .{},
+    calibrate: bool = false,
     clear_errors: bool = false,
-    _0xC: u4 = 0,
-    reset_pull_carrier: packed struct(u3) {
+    stop_pull_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
@@ -32,7 +101,7 @@ pub const Y = packed struct(u64) {
                 2 => self.axis3,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `reset_pull_carrier`",
+                        "Invalid axis index 3 for `stop_pull_carrier`",
                         .{},
                     );
                     unreachable;
@@ -41,7 +110,7 @@ pub const Y = packed struct(u64) {
         }
 
         pub fn setAxis(
-            self: *align(8:16:8) @This(),
+            self: *align(8:11:8) @This(),
             local_axis: u2,
             val: bool,
         ) void {
@@ -51,7 +120,7 @@ pub const Y = packed struct(u64) {
                 2 => self.axis3 = val,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `reset_pull_carrier`",
+                        "Invalid axis index 3 for `stop_pull_carrier`",
                         .{},
                     );
                     unreachable;
@@ -59,7 +128,7 @@ pub const Y = packed struct(u64) {
             }
         }
     } = .{},
-    reset_push_carrier: packed struct(u3) {
+    stop_push_carrier: packed struct(u3) {
         axis1: bool = false,
         axis2: bool = false,
         axis3: bool = false,
@@ -71,7 +140,7 @@ pub const Y = packed struct(u64) {
                 2 => self.axis3,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `reset_push_carrier`",
+                        "Invalid axis index 3 for `stop_push_carrier`",
                         .{},
                     );
                     unreachable;
@@ -80,7 +149,7 @@ pub const Y = packed struct(u64) {
         }
 
         pub fn setAxis(
-            self: *align(8:19:8) @This(),
+            self: *align(8:14:8) @This(),
             local_axis: u2,
             val: bool,
         ) void {
@@ -90,7 +159,7 @@ pub const Y = packed struct(u64) {
                 2 => self.axis3 = val,
                 3 => {
                     std.log.err(
-                        "Invalid axis index 3 for `reset_push_carrier`",
+                        "Invalid axis index 3 for `stop_push_carrier`",
                         .{},
                     );
                     unreachable;
@@ -98,7 +167,7 @@ pub const Y = packed struct(u64) {
             }
         }
     } = .{},
-    _22: u42 = 0,
+    _22: u47 = 0,
 
     pub fn format(y: Y, writer: anytype) !void {
         _ = try registers.nestedWrite("Y", y, 0, writer);

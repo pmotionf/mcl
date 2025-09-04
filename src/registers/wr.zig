@@ -4,20 +4,8 @@ const registers = @import("../registers.zig");
 /// Registers written through CC-Link's "DevWr" device. Used as a "read"
 /// register bank.
 pub const Wr = packed struct(u256) {
-    command_response: CommandResponseCode = .NoError,
-    _16: u16 = 0,
-    received_backward: packed struct(u16) {
-        id: u10 = 0,
-        kind: DriverMessageKind = .none,
-        failed_bcc: bool = false,
-        _: u1 = 0,
-    } = .{},
-    received_forward: packed struct(u16) {
-        id: u10 = 0,
-        kind: DriverMessageKind = .none,
-        failed_bcc: bool = false,
-        _: u1 = 0,
-    } = .{},
+    command_response: CommandResponseCode = .none,
+    _16: u48 = 0,
     carrier: packed struct(u192) {
         axis1: Carrier = .{},
         axis2: Carrier = .{},
@@ -98,25 +86,24 @@ pub const Wr = packed struct(u256) {
     };
 
     pub const CommandResponseCode = enum(u16) {
-        NoError = 0,
-        InvalidCommand = 1,
-        CarrierNotFound = 2,
-        HomingFailed = 3,
-        InvalidParameter = 4,
-        InvalidSystemState = 5,
-        CarrierAlreadyExists = 6,
-        InvalidAxis = 7,
+        none = 0,
+        success = 1,
+        unknown_cmd = 2,
+        carrier_not_found = 3,
+        invalid_parameters = 4,
+        invalid_system_state = 5,
+        carrier_already_exists = 6,
+        invalid_axis = 7,
 
         pub fn throwError(code: CommandResponseCode) !void {
             return switch (code) {
-                .NoError => {},
-                .InvalidCommand => return error.InvalidCommand,
-                .CarrierNotFound => return error.CarrierNotFound,
-                .HomingFailed => return error.HomingFailed,
-                .InvalidParameter => return error.InvalidParameter,
-                .InvalidSystemState => return error.InvalidSystemState,
-                .CarrierAlreadyExists => return error.CarrierAlreadyExists,
-                .InvalidAxis => return error.InvalidAxis,
+                .none, .success => {},
+                .unknown_cmd => return error.InvalidCommand,
+                .carrier_not_found => return error.CarrierNotFound,
+                .invalid_parameters => return error.InvalidParameters,
+                .invalid_system_state => return error.InvalidSystemState,
+                .carrier_already_exists => return error.CarrierAlreadyExists,
+                .invalid_axis => return error.InvalidAxis,
             };
         }
     };
@@ -124,20 +111,6 @@ pub const Wr = packed struct(u256) {
     pub fn format(wr: Wr, writer: anytype) !void {
         _ = try registers.nestedWrite("Wr", wr, 0, writer);
     }
-};
-
-pub const DriverMessageKind = enum(u4) {
-    none,
-    update,
-    prof_req,
-    prof_noti,
-    update_cali_home,
-    update_mech_angle_offset,
-    on_pos_req,
-    on_pos_rsp,
-    off_pos_req,
-    off_pos_rsp,
-    clear_carrier_info,
 };
 
 test "Wr" {
