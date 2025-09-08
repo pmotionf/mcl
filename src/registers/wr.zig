@@ -69,10 +69,6 @@ pub const Wr = packed struct(u256) {
             ForwardIsolationCompleted,
             BackwardIsolationProgressing,
             BackwardIsolationCompleted,
-            ForwardRestartProgressing,
-            ForwardRestartCompleted,
-            BackwardRestartProgressing,
-            BackwardRestartCompleted,
 
             PullForward = 0x19,
             PullForwardCompleted,
