@@ -88,22 +88,32 @@ pub const Wr = packed struct(u256) {
     pub const CommandResponseCode = enum(u16) {
         none = 0,
         success = 1,
-        unknown_cmd = 2,
-        carrier_not_found = 3,
-        invalid_parameters = 4,
-        invalid_system_state = 5,
-        carrier_already_exists = 6,
-        invalid_axis = 7,
+        invalid_cmd,
+        invalid_axis_id,
+        invalid_carrier_id,
+        invalid_carrier_target,
+        invalid_carrier_control,
+        invalid_carrier_vel,
+        invalid_carrier_acc,
+        carrier_not_found,
+        carrier_already_exists,
+        invalid_parameters,
+        invalid_system_state,
 
         pub fn throwError(code: CommandResponseCode) !void {
             return switch (code) {
                 .none, .success => {},
-                .unknown_cmd => return error.InvalidCommand,
+                .invalid_cmd => return error.InvalidCommand,
+                .invalid_axis_id => return error.InvalidAxis,
+                .invalid_carrier_id => return error.InvalidCarrierId,
+                .invalid_carrier_target => return error.InvalidCarrierTarget,
+                .invalid_carrier_control => return error.InvalidCarrierControl,
+                .invalid_carrier_vel => return error.InvalidCarrierVelocity,
+                .invalid_carrier_acc => return error.InvalidCarrierAcceleration,
                 .carrier_not_found => return error.CarrierNotFound,
+                .carrier_already_exists => return error.CarrierAlreadyExists,
                 .invalid_parameters => return error.InvalidParameters,
                 .invalid_system_state => return error.InvalidSystemState,
-                .carrier_already_exists => return error.CarrierAlreadyExists,
-                .invalid_axis => return error.InvalidAxis,
             };
         }
     };
