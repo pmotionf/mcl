@@ -9,10 +9,10 @@ pub const Ww = packed struct(u256) {
     carrier: packed struct(u80) {
         target: f32 = 0.0,
         id: u10 = 0,
-        enable_cas: bool = false,
+        control_kind: ControlKind = .none,
+        disable_cas: bool = false,
         isolate_link_prev_axis: bool = false,
         isolate_link_next_axis: bool = false,
-        control_kind: ControlKind = .none,
         _: u1 = 0,
         velocity: u16 = 0,
         acceleration: u16 = 0,
