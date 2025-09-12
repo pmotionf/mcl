@@ -78,6 +78,8 @@ pub const Wr = packed struct(u256) {
             PushCompleted,
 
             Overcurrent = 0x1F,
+
+            _,
         };
     };
 
@@ -95,6 +97,7 @@ pub const Wr = packed struct(u256) {
         carrier_already_exists,
         invalid_parameters,
         invalid_system_state,
+        _,
 
         pub fn throwError(code: CommandResponseCode) !void {
             return switch (code) {
@@ -110,6 +113,7 @@ pub const Wr = packed struct(u256) {
                 .carrier_already_exists => return error.CarrierAlreadyExists,
                 .invalid_parameters => return error.InvalidParameters,
                 .invalid_system_state => return error.InvalidSystemState,
+                _ => return error.Unexpected,
             };
         }
     };
