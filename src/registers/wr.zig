@@ -44,7 +44,8 @@ pub const Wr = packed struct(u256) {
             /// Whether carrier's CAS (collision avoidance system) is triggered.
             triggered: bool = false,
         } = .{},
-        _54: u2 = 0,
+        initialized: bool = false,
+        _55: u1 = 0,
         state: State = .None,
 
         pub const State = enum(u8) {
@@ -53,12 +54,8 @@ pub const Wr = packed struct(u256) {
             WarmupProgressing,
             WarmupCompleted,
 
-            PosMoveProgressing = 0x4,
-            PosMoveCompleted,
-            SpdMoveProgressing,
-            SpdMoveCompleted,
+            Move = 0x4,
             Auxiliary,
-            AuxiliaryCompleted,
 
             ForwardCalibrationProgressing = 0xA,
             ForwardCalibrationCompleted,
@@ -71,9 +68,7 @@ pub const Wr = packed struct(u256) {
             BackwardIsolationCompleted,
 
             PullForward = 0x19,
-            PullForwardCompleted,
             PullBackward,
-            PullBackwardCompleted,
             Push,
             PushCompleted,
 
