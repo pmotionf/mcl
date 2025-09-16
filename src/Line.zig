@@ -390,7 +390,7 @@ test "Line search" {
         .id = 1,
         .auxiliary = false,
         .enabled = true,
-        .state = .PosMoveCompleted,
+        .state = .Move,
     };
 
     const _result = line.search(1);
