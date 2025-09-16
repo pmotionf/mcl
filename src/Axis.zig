@@ -52,13 +52,13 @@ pub fn isAuxiliaryTo(self: Axis, other: Axis) bool {
         return false;
     }
 
-    if (self_carrier.state == .None and other_carrier.state != .None) {
+    if (self_carrier.state == .none and other_carrier.state != .none) {
         return true;
-    } else if (self_carrier.state != .None and other_carrier.state == .None) {
+    } else if (self_carrier.state != .none and other_carrier.state == .none) {
         return false;
     }
 
-    if (self_carrier.state == .Auxiliary) {
+    if (self_carrier.state == .auxiliary) {
         return true;
     }
 

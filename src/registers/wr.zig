@@ -46,34 +46,32 @@ pub const Wr = packed struct(u256) {
         } = .{},
         initialized: bool = false,
         _55: u1 = 0,
-        state: State = .None,
+        state: State = .none,
 
         pub const State = enum(u8) {
-            None = 0x0,
+            none = 0x0,
 
-            WarmupProgressing,
-            WarmupCompleted,
+            warmup_progressing,
+            warmup_completed,
 
-            Move = 0x4,
-            Auxiliary,
+            move = 0x4,
+            auxiliary,
 
-            ForwardCalibrationProgressing = 0xA,
-            ForwardCalibrationCompleted,
-            BackwardCalibrationProgressing,
-            BackwardCalibrationCompleted,
+            forward_calibration_progressing = 0xA,
+            forward_calibration_completed,
+            backward_calibration_progressing,
+            backward_calibration_completed,
 
-            ForwardIsolationProgressing = 0x10,
-            ForwardIsolationCompleted,
-            BackwardIsolationProgressing,
-            BackwardIsolationCompleted,
+            forward_isolation_progressing = 0x10,
+            forward_isolation_completed,
+            backward_isolation_progressing,
+            backward_isolation_completed,
 
-            PullForward = 0x19,
-            PullBackward,
-            Push,
-            PushCompleted,
+            pull_forward = 0x1A,
+            pull_backward,
+            push,
 
-            Overcurrent = 0x1F,
-
+            overcurrent = 0x1F,
             _,
         };
     };

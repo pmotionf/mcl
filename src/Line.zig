@@ -384,13 +384,13 @@ test "Line search" {
         .id = 1,
         .auxiliary = true,
         .enabled = true,
-        .state = .Auxiliary,
+        .state = .auxiliary,
     };
     line.stations[2].wr.carrier.axis1 = .{
         .id = 1,
         .auxiliary = false,
         .enabled = true,
-        .state = .Move,
+        .state = .move,
     };
 
     const _result = line.search(1);
