@@ -4,54 +4,53 @@ const registers = @import("../registers.zig");
 /// Registers written through CC-Link's "DevWw" device. Used as a "write"
 /// register bank.
 pub const Ww = packed struct(u256) {
-    command: Command = .None,
+    command: Command = .none,
     axis: u16 = 0,
     carrier: packed struct(u80) {
-        target: packed union {
-            f32: f32,
-            u32: u32,
-            i32: i32,
-        } = .{ .u32 = 0 },
+        target: f32 = 0.0,
         id: u10 = 0,
-        enable_cas: bool = false,
+        control_kind: ControlKind = .none,
+        disable_cas: bool = false,
         isolate_link_prev_axis: bool = false,
         isolate_link_next_axis: bool = false,
-        _: u3 = 0,
-        speed: u16 = 0,
+        _: u1 = 0,
+        velocity: u16 = 0,
         acceleration: u16 = 0,
     } = .{},
     _112: u144 = 0,
 
+    pub const ControlKind = enum(u2) {
+        none = 0,
+        velocity = 1,
+        position = 2,
+    };
+
     pub const Command = enum(i16) {
-        None = 0x0,
-        SetLineZero = 0x1,
-        // "By Position" commands calculate carrier movement by constant hall
-        // sensor position feedback, and is much more precise in destination.
-        PositionMoveCarrierAxis = 0x12,
-        PositionMoveCarrierLocation = 0x13,
-        PositionMoveCarrierDistance = 0x14,
-        // "By Speed" commands calculate carrier movement by constant hall
-        // sensor speed feedback. It should mostly not be used, as the
-        // destination position becomes far too imprecise. However, it is
-        // meant to maintain a certain speed while the carrier is traveling,
-        // and to avoid the requirement of having a known system position.
-        SpeedMoveCarrierAxis = 0x15,
-        SpeedMoveCarrierLocation = 0x16,
-        SpeedMoveCarrierDistance = 0x17,
-        IsolateForward = 0x18,
-        IsolateBackward = 0x19,
-        Calibration = 0x1A,
-        SetCarrierIdAtAxis = 0x1D,
-        PushForward = 0x1E,
-        PushBackward = 0x1F,
-        PullForward = 0x20,
-        PullBackward = 0x21,
-        PushTransitionForward = 0x22,
-        PushTransitionBackward = 0x23,
-        PullTransitionAxisForward = 0x24,
-        PullTransitionAxisBackward = 0x25,
-        PullTransitionLocationForward = 0x26,
-        PullTransitionLocationBackward = 0x27,
+        none = 0x0,
+
+        /// Find and set zero offset of axis's hall sensor angles.
+        set_sensors_zero = 0x1,
+        /// Set zero point of line at current carrier position.
+        set_line_zero = 0x2,
+
+        initialize_fwd = 0x3,
+        initialize_bwd = 0x4,
+
+        /// Set initialized carrier's ID at axis.
+        set_id_axis = 0x6,
+
+        /// Release carrier control.
+        release = 0x7,
+        /// Deinitialize carrier, releasing control and erasing stored info.
+        deinitialize = 0x8,
+
+        /// Absolute location movement.
+        move_abs = 0x10,
+        /// Relative distance movement.
+        move_rel = 0x11,
+
+        push = 0x20,
+        pull = 0x21,
     };
 
     pub fn format(ww: Ww, writer: anytype) !void {

@@ -4,20 +4,8 @@ const registers = @import("../registers.zig");
 /// Registers written through CC-Link's "DevWr" device. Used as a "read"
 /// register bank.
 pub const Wr = packed struct(u256) {
-    command_response: CommandResponseCode = .NoError,
-    _16: u16 = 0,
-    received_backward: packed struct(u16) {
-        id: u10 = 0,
-        kind: DriverMessageKind = .none,
-        failed_bcc: bool = false,
-        _: u1 = 0,
-    } = .{},
-    received_forward: packed struct(u16) {
-        id: u10 = 0,
-        kind: DriverMessageKind = .none,
-        failed_bcc: bool = false,
-        _: u1 = 0,
-    } = .{},
+    command_response: CommandResponseCode = .none,
+    _16: u48 = 0,
     carrier: packed struct(u192) {
         axis1: Carrier = .{},
         axis2: Carrier = .{},
@@ -56,67 +44,69 @@ pub const Wr = packed struct(u256) {
             /// Whether carrier's CAS (collision avoidance system) is triggered.
             triggered: bool = false,
         } = .{},
-        _54: u2 = 0,
-        state: State = .None,
+        initialized: bool = false,
+        _55: u1 = 0,
+        state: State = .none,
 
         pub const State = enum(u8) {
-            None = 0x0,
+            none = 0x0,
 
-            WarmupProgressing,
-            WarmupCompleted,
+            warmup_progressing,
+            warmup_completed,
 
-            PosMoveProgressing = 0x4,
-            PosMoveCompleted,
-            SpdMoveProgressing,
-            SpdMoveCompleted,
-            Auxiliary,
-            AuxiliaryCompleted,
+            move = 0x4,
+            auxiliary,
 
-            ForwardCalibrationProgressing = 0xA,
-            ForwardCalibrationCompleted,
-            BackwardCalibrationProgressing,
-            BackwardCalibrationCompleted,
+            forward_calibration_progressing = 0xA,
+            forward_calibration_completed,
+            backward_calibration_progressing,
+            backward_calibration_completed,
 
-            ForwardIsolationProgressing = 0x10,
-            ForwardIsolationCompleted,
-            BackwardIsolationProgressing,
-            BackwardIsolationCompleted,
-            ForwardRestartProgressing,
-            ForwardRestartCompleted,
-            BackwardRestartProgressing,
-            BackwardRestartCompleted,
+            forward_isolation_progressing = 0x10,
+            forward_isolation_completed,
+            backward_isolation_progressing,
+            backward_isolation_completed,
 
-            PullForward = 0x19,
-            PullForwardCompleted,
-            PullBackward,
-            PullBackwardCompleted,
-            Push,
-            PushCompleted,
+            pull_forward = 0x1A,
+            pull_backward,
+            push,
 
-            Overcurrent = 0x1F,
+            overcurrent = 0x1F,
+            _,
         };
     };
 
     pub const CommandResponseCode = enum(u16) {
-        NoError = 0,
-        InvalidCommand = 1,
-        CarrierNotFound = 2,
-        HomingFailed = 3,
-        InvalidParameter = 4,
-        InvalidSystemState = 5,
-        CarrierAlreadyExists = 6,
-        InvalidAxis = 7,
+        none = 0,
+        success = 1,
+        invalid_cmd,
+        invalid_axis_id,
+        invalid_carrier_id,
+        invalid_carrier_target,
+        invalid_carrier_control,
+        invalid_carrier_vel,
+        invalid_carrier_acc,
+        carrier_not_found,
+        carrier_already_exists,
+        invalid_parameters,
+        invalid_system_state,
+        _,
 
         pub fn throwError(code: CommandResponseCode) !void {
             return switch (code) {
-                .NoError => {},
-                .InvalidCommand => return error.InvalidCommand,
-                .CarrierNotFound => return error.CarrierNotFound,
-                .HomingFailed => return error.HomingFailed,
-                .InvalidParameter => return error.InvalidParameter,
-                .InvalidSystemState => return error.InvalidSystemState,
-                .CarrierAlreadyExists => return error.CarrierAlreadyExists,
-                .InvalidAxis => return error.InvalidAxis,
+                .none, .success => {},
+                .invalid_cmd => return error.InvalidCommand,
+                .invalid_axis_id => return error.InvalidAxis,
+                .invalid_carrier_id => return error.InvalidCarrierId,
+                .invalid_carrier_target => return error.InvalidCarrierTarget,
+                .invalid_carrier_control => return error.InvalidCarrierControl,
+                .invalid_carrier_vel => return error.InvalidCarrierVelocity,
+                .invalid_carrier_acc => return error.InvalidCarrierAcceleration,
+                .carrier_not_found => return error.CarrierNotFound,
+                .carrier_already_exists => return error.CarrierAlreadyExists,
+                .invalid_parameters => return error.InvalidParameters,
+                .invalid_system_state => return error.InvalidSystemState,
+                _ => return error.Unexpected,
             };
         }
     };
@@ -124,20 +114,6 @@ pub const Wr = packed struct(u256) {
     pub fn format(wr: Wr, writer: anytype) !void {
         _ = try registers.nestedWrite("Wr", wr, 0, writer);
     }
-};
-
-pub const DriverMessageKind = enum(u4) {
-    none,
-    update,
-    prof_req,
-    prof_noti,
-    update_cali_home,
-    update_mech_angle_offset,
-    on_pos_req,
-    on_pos_rsp,
-    off_pos_req,
-    off_pos_rsp,
-    clear_carrier_info,
 };
 
 test "Wr" {
